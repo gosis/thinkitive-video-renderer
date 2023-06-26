@@ -1,0 +1,6 @@
+framework module Pods_thinkitive_video_rendererTests {
+  umbrella header "Pods-thinkitive-video-rendererTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
