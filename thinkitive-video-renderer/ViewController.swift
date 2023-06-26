@@ -1,6 +1,7 @@
 import UIKit
 import Photos
 
+@available(iOS 11.0, *)
 class ViewController: UIViewController {
     
     override func viewDidLoad() {
@@ -69,6 +70,7 @@ class ViewController: UIViewController {
     }
 }
 
+@available(iOS 11.0, *)
 extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {        
         picker.dismiss(animated: true) { [weak self] in

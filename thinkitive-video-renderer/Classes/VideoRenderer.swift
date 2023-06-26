@@ -8,6 +8,7 @@
 import Photos
 import UIKit
 
+@available(iOS 11.0, *)
 class VideoRenderer {
     
     private enum VideoRendererError: Error, CustomDebugStringConvertible {
@@ -254,6 +255,7 @@ class VideoRenderer {
     }
 }
 
+@available(iOS 11.0, *)
 extension VideoRenderer {
     
     class func videoAssetFromImage(image: UIImage,
