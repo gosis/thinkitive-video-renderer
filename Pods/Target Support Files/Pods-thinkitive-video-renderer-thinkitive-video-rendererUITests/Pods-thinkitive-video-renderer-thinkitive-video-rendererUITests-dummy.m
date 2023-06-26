@@ -1,0 +1,5 @@
+#import <Foundation/Foundation.h>
+@interface PodsDummy_Pods_thinkitive_video_renderer_thinkitive_video_rendererUITests : NSObject
+@end
+@implementation PodsDummy_Pods_thinkitive_video_renderer_thinkitive_video_rendererUITests
+@end
