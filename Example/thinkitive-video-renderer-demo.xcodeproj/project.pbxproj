@@ -1,0 +1,805 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5175143E2A43244A00CA8280 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5175143D2A43244A00CA8280 /* AppDelegate.swift */; };
+		517514422A43244A00CA8280 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 517514412A43244A00CA8280 /* ViewController.swift */; };
+		517514452A43244A00CA8280 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 517514432A43244A00CA8280 /* Main.storyboard */; };
+		517514472A43244B00CA8280 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 517514462A43244B00CA8280 /* Assets.xcassets */; };
+		5175144A2A43244B00CA8280 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 517514482A43244B00CA8280 /* LaunchScreen.storyboard */; };
+		517514552A43244B00CA8280 /* LottieVideoDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 517514542A43244B00CA8280 /* LottieVideoDemoTests.swift */; };
+		5175145F2A43244B00CA8280 /* LottieVideoDemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5175145E2A43244B00CA8280 /* LottieVideoDemoUITests.swift */; };
+		517514612A43244B00CA8280 /* LottieVideoDemoUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 517514602A43244B00CA8280 /* LottieVideoDemoUITestsLaunchTests.swift */; };
+		5175146F2A4324FA00CA8280 /* dino_data.lottie in Resources */ = {isa = PBXBuildFile; fileRef = 5175146E2A4324FA00CA8280 /* dino_data.lottie */; };
+		517514712A43251B00CA8280 /* LottieOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 517514702A43251B00CA8280 /* LottieOverlayView.swift */; };
+		517514752A435EF500CA8280 /* PermissionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 517514742A435EF500CA8280 /* PermissionsManager.swift */; };
+		9F253D667136FF85696749B1 /* Pods_thinkitive_video_renderer_demo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BBAFF31D488E3E8232236AA8 /* Pods_thinkitive_video_renderer_demo.framework */; };
+		DDD7E2308B38E784754416C6 /* Pods_thinkitive_video_renderer_demo_thinkitive_video_renderer_demoUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A97F5103F76AC590BD409673 /* Pods_thinkitive_video_renderer_demo_thinkitive_video_renderer_demoUITests.framework */; };
+		DFA3A9C0A92519AA18706397 /* Pods_thinkitive_video_renderer_demoTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE51B77B3F8503276509AB33 /* Pods_thinkitive_video_renderer_demoTests.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		517514512A43244B00CA8280 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 517514322A43244A00CA8280 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 517514392A43244A00CA8280;
+			remoteInfo = LottieVideoDemo;
+		};
+		5175145B2A43244B00CA8280 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 517514322A43244A00CA8280 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 517514392A43244A00CA8280;
+			remoteInfo = LottieVideoDemo;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		16172880DE8D6C903E26285A /* Pods-thinkitive-video-renderer-demoTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-thinkitive-video-renderer-demoTests.debug.xcconfig"; path = "Target Support Files/Pods-thinkitive-video-renderer-demoTests/Pods-thinkitive-video-renderer-demoTests.debug.xcconfig"; sourceTree = "<group>"; };
+		185681FB2F54488FF4EAA94C /* Pods-thinkitive-video-renderer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-thinkitive-video-renderer.debug.xcconfig"; path = "Target Support Files/Pods-thinkitive-video-renderer/Pods-thinkitive-video-renderer.debug.xcconfig"; sourceTree = "<group>"; };
+		1DCF2F55610E0A825539E026 /* Pods-thinkitive-video-renderer-demoTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-thinkitive-video-renderer-demoTests.release.xcconfig"; path = "Target Support Files/Pods-thinkitive-video-renderer-demoTests/Pods-thinkitive-video-renderer-demoTests.release.xcconfig"; sourceTree = "<group>"; };
+		3F28AFDC46501F761248BD04 /* Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests.release.xcconfig"; path = "Target Support Files/Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests/Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests.release.xcconfig"; sourceTree = "<group>"; };
+		3F52E08EA9ECE1AF770E64DB /* Pods-LottieVideoDemo-LottieVideoDemoUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LottieVideoDemo-LottieVideoDemoUITests.debug.xcconfig"; path = "Target Support Files/Pods-LottieVideoDemo-LottieVideoDemoUITests/Pods-LottieVideoDemo-LottieVideoDemoUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		5175143A2A43244A00CA8280 /* thinkitive-video-renderer-demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "thinkitive-video-renderer-demo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5175143D2A43244A00CA8280 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		517514412A43244A00CA8280 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		517514442A43244A00CA8280 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		517514462A43244B00CA8280 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		517514492A43244B00CA8280 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		5175144B2A43244B00CA8280 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		517514502A43244B00CA8280 /* thinkitive-video-renderer-demoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "thinkitive-video-renderer-demoTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		517514542A43244B00CA8280 /* LottieVideoDemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieVideoDemoTests.swift; sourceTree = "<group>"; };
+		5175145A2A43244B00CA8280 /* thinkitive-video-renderer-demoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "thinkitive-video-renderer-demoUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5175145E2A43244B00CA8280 /* LottieVideoDemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieVideoDemoUITests.swift; sourceTree = "<group>"; };
+		517514602A43244B00CA8280 /* LottieVideoDemoUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieVideoDemoUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		5175146E2A4324FA00CA8280 /* dino_data.lottie */ = {isa = PBXFileReference; lastKnownFileType = file; path = dino_data.lottie; sourceTree = "<group>"; };
+		517514702A43251B00CA8280 /* LottieOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieOverlayView.swift; sourceTree = "<group>"; };
+		517514742A435EF500CA8280 /* PermissionsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsManager.swift; sourceTree = "<group>"; };
+		55B03315FA57D42782D0EACC /* Pods-thinkitive-video-renderer-demo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-thinkitive-video-renderer-demo.release.xcconfig"; path = "Target Support Files/Pods-thinkitive-video-renderer-demo/Pods-thinkitive-video-renderer-demo.release.xcconfig"; sourceTree = "<group>"; };
+		584842D19E03A04E903A7015 /* Pods-thinkitive-video-renderer-thinkitive-video-rendererUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-thinkitive-video-renderer-thinkitive-video-rendererUITests.debug.xcconfig"; path = "Target Support Files/Pods-thinkitive-video-renderer-thinkitive-video-rendererUITests/Pods-thinkitive-video-renderer-thinkitive-video-rendererUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		687CA3122DBC7222ABD1BD98 /* Pods-thinkitive-video-renderer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-thinkitive-video-renderer.release.xcconfig"; path = "Target Support Files/Pods-thinkitive-video-renderer/Pods-thinkitive-video-renderer.release.xcconfig"; sourceTree = "<group>"; };
+		70384395F0AAD218E0F56382 /* Pods-LottieVideoDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LottieVideoDemo.debug.xcconfig"; path = "Target Support Files/Pods-LottieVideoDemo/Pods-LottieVideoDemo.debug.xcconfig"; sourceTree = "<group>"; };
+		73217253783A10CA9A37B506 /* Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests.debug.xcconfig"; path = "Target Support Files/Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests/Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		9AC2C2FD3713E5E9433EBF88 /* Pods-LottieVideoDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LottieVideoDemo.release.xcconfig"; path = "Target Support Files/Pods-LottieVideoDemo/Pods-LottieVideoDemo.release.xcconfig"; sourceTree = "<group>"; };
+		A97F5103F76AC590BD409673 /* Pods_thinkitive_video_renderer_demo_thinkitive_video_renderer_demoUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_thinkitive_video_renderer_demo_thinkitive_video_renderer_demoUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE51B77B3F8503276509AB33 /* Pods_thinkitive_video_renderer_demoTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_thinkitive_video_renderer_demoTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BBAFF31D488E3E8232236AA8 /* Pods_thinkitive_video_renderer_demo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_thinkitive_video_renderer_demo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D9B297CD837B0AAFF546F365 /* Pods-thinkitive-video-rendererTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-thinkitive-video-rendererTests.release.xcconfig"; path = "Target Support Files/Pods-thinkitive-video-rendererTests/Pods-thinkitive-video-rendererTests.release.xcconfig"; sourceTree = "<group>"; };
+		DA060E59AD0893A2F7549030 /* Pods-LottieVideoDemoTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LottieVideoDemoTests.release.xcconfig"; path = "Target Support Files/Pods-LottieVideoDemoTests/Pods-LottieVideoDemoTests.release.xcconfig"; sourceTree = "<group>"; };
+		F37614A1083DEB59D6430830 /* Pods-thinkitive-video-renderer-demo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-thinkitive-video-renderer-demo.debug.xcconfig"; path = "Target Support Files/Pods-thinkitive-video-renderer-demo/Pods-thinkitive-video-renderer-demo.debug.xcconfig"; sourceTree = "<group>"; };
+		F63837045875A01DAC6A7749 /* Pods-thinkitive-video-rendererTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-thinkitive-video-rendererTests.debug.xcconfig"; path = "Target Support Files/Pods-thinkitive-video-rendererTests/Pods-thinkitive-video-rendererTests.debug.xcconfig"; sourceTree = "<group>"; };
+		F8EFC784992943CFB0D0B83E /* Pods-LottieVideoDemoTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LottieVideoDemoTests.debug.xcconfig"; path = "Target Support Files/Pods-LottieVideoDemoTests/Pods-LottieVideoDemoTests.debug.xcconfig"; sourceTree = "<group>"; };
+		FCB47A5147C998920A098443 /* Pods-LottieVideoDemo-LottieVideoDemoUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LottieVideoDemo-LottieVideoDemoUITests.release.xcconfig"; path = "Target Support Files/Pods-LottieVideoDemo-LottieVideoDemoUITests/Pods-LottieVideoDemo-LottieVideoDemoUITests.release.xcconfig"; sourceTree = "<group>"; };
+		FDF8980E69C681656A638D56 /* Pods-thinkitive-video-renderer-thinkitive-video-rendererUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-thinkitive-video-renderer-thinkitive-video-rendererUITests.release.xcconfig"; path = "Target Support Files/Pods-thinkitive-video-renderer-thinkitive-video-rendererUITests/Pods-thinkitive-video-renderer-thinkitive-video-rendererUITests.release.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		517514372A43244A00CA8280 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9F253D667136FF85696749B1 /* Pods_thinkitive_video_renderer_demo.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5175144D2A43244B00CA8280 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DFA3A9C0A92519AA18706397 /* Pods_thinkitive_video_renderer_demoTests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		517514572A43244B00CA8280 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DDD7E2308B38E784754416C6 /* Pods_thinkitive_video_renderer_demo_thinkitive_video_renderer_demoUITests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		285745FFECF73EE5D353C8AF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				BBAFF31D488E3E8232236AA8 /* Pods_thinkitive_video_renderer_demo.framework */,
+				A97F5103F76AC590BD409673 /* Pods_thinkitive_video_renderer_demo_thinkitive_video_renderer_demoUITests.framework */,
+				AE51B77B3F8503276509AB33 /* Pods_thinkitive_video_renderer_demoTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		517514312A43244A00CA8280 = {
+			isa = PBXGroup;
+			children = (
+				5175143C2A43244A00CA8280 /* thinkitive-video-renderer-demo */,
+				517514532A43244B00CA8280 /* thinkitive-video-renderer-demoTests */,
+				5175145D2A43244B00CA8280 /* thinkitive-video-renderer-demoTests */,
+				5175143B2A43244A00CA8280 /* Products */,
+				9659D78DB9372591BCE11023 /* Pods */,
+				285745FFECF73EE5D353C8AF /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		5175143B2A43244A00CA8280 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5175143A2A43244A00CA8280 /* thinkitive-video-renderer-demo.app */,
+				517514502A43244B00CA8280 /* thinkitive-video-renderer-demoTests.xctest */,
+				5175145A2A43244B00CA8280 /* thinkitive-video-renderer-demoUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5175143C2A43244A00CA8280 /* thinkitive-video-renderer-demo */ = {
+			isa = PBXGroup;
+			children = (
+				5175143D2A43244A00CA8280 /* AppDelegate.swift */,
+				517514412A43244A00CA8280 /* ViewController.swift */,
+				517514702A43251B00CA8280 /* LottieOverlayView.swift */,
+				517514742A435EF500CA8280 /* PermissionsManager.swift */,
+				5175146D2A4324DA00CA8280 /* Lottie */,
+				517514432A43244A00CA8280 /* Main.storyboard */,
+				517514462A43244B00CA8280 /* Assets.xcassets */,
+				517514482A43244B00CA8280 /* LaunchScreen.storyboard */,
+				5175144B2A43244B00CA8280 /* Info.plist */,
+			);
+			path = "thinkitive-video-renderer-demo";
+			sourceTree = "<group>";
+		};
+		517514532A43244B00CA8280 /* thinkitive-video-renderer-demoTests */ = {
+			isa = PBXGroup;
+			children = (
+				517514542A43244B00CA8280 /* LottieVideoDemoTests.swift */,
+			);
+			path = "thinkitive-video-renderer-demoTests";
+			sourceTree = "<group>";
+		};
+		5175145D2A43244B00CA8280 /* thinkitive-video-renderer-demoTests */ = {
+			isa = PBXGroup;
+			children = (
+				5175145E2A43244B00CA8280 /* LottieVideoDemoUITests.swift */,
+				517514602A43244B00CA8280 /* LottieVideoDemoUITestsLaunchTests.swift */,
+			);
+			path = "thinkitive-video-renderer-demoTests";
+			sourceTree = "<group>";
+		};
+		5175146D2A4324DA00CA8280 /* Lottie */ = {
+			isa = PBXGroup;
+			children = (
+				5175146E2A4324FA00CA8280 /* dino_data.lottie */,
+			);
+			path = Lottie;
+			sourceTree = "<group>";
+		};
+		9659D78DB9372591BCE11023 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				70384395F0AAD218E0F56382 /* Pods-LottieVideoDemo.debug.xcconfig */,
+				9AC2C2FD3713E5E9433EBF88 /* Pods-LottieVideoDemo.release.xcconfig */,
+				3F52E08EA9ECE1AF770E64DB /* Pods-LottieVideoDemo-LottieVideoDemoUITests.debug.xcconfig */,
+				FCB47A5147C998920A098443 /* Pods-LottieVideoDemo-LottieVideoDemoUITests.release.xcconfig */,
+				F8EFC784992943CFB0D0B83E /* Pods-LottieVideoDemoTests.debug.xcconfig */,
+				DA060E59AD0893A2F7549030 /* Pods-LottieVideoDemoTests.release.xcconfig */,
+				185681FB2F54488FF4EAA94C /* Pods-thinkitive-video-renderer.debug.xcconfig */,
+				687CA3122DBC7222ABD1BD98 /* Pods-thinkitive-video-renderer.release.xcconfig */,
+				584842D19E03A04E903A7015 /* Pods-thinkitive-video-renderer-thinkitive-video-rendererUITests.debug.xcconfig */,
+				FDF8980E69C681656A638D56 /* Pods-thinkitive-video-renderer-thinkitive-video-rendererUITests.release.xcconfig */,
+				F63837045875A01DAC6A7749 /* Pods-thinkitive-video-rendererTests.debug.xcconfig */,
+				D9B297CD837B0AAFF546F365 /* Pods-thinkitive-video-rendererTests.release.xcconfig */,
+				F37614A1083DEB59D6430830 /* Pods-thinkitive-video-renderer-demo.debug.xcconfig */,
+				55B03315FA57D42782D0EACC /* Pods-thinkitive-video-renderer-demo.release.xcconfig */,
+				73217253783A10CA9A37B506 /* Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests.debug.xcconfig */,
+				3F28AFDC46501F761248BD04 /* Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests.release.xcconfig */,
+				16172880DE8D6C903E26285A /* Pods-thinkitive-video-renderer-demoTests.debug.xcconfig */,
+				1DCF2F55610E0A825539E026 /* Pods-thinkitive-video-renderer-demoTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		517514392A43244A00CA8280 /* thinkitive-video-renderer-demo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 517514642A43244B00CA8280 /* Build configuration list for PBXNativeTarget "thinkitive-video-renderer-demo" */;
+			buildPhases = (
+				3975BD4AD3C3CF5B48D36F28 /* [CP] Check Pods Manifest.lock */,
+				517514362A43244A00CA8280 /* Sources */,
+				517514372A43244A00CA8280 /* Frameworks */,
+				517514382A43244A00CA8280 /* Resources */,
+				4BBD7B057B4EA5DECB3382EF /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "thinkitive-video-renderer-demo";
+			productName = LottieVideoDemo;
+			productReference = 5175143A2A43244A00CA8280 /* thinkitive-video-renderer-demo.app */;
+			productType = "com.apple.product-type.application";
+		};
+		5175144F2A43244B00CA8280 /* thinkitive-video-renderer-demoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 517514672A43244B00CA8280 /* Build configuration list for PBXNativeTarget "thinkitive-video-renderer-demoTests" */;
+			buildPhases = (
+				4AD601D631055F3B8C22EADC /* [CP] Check Pods Manifest.lock */,
+				5175144C2A43244B00CA8280 /* Sources */,
+				5175144D2A43244B00CA8280 /* Frameworks */,
+				5175144E2A43244B00CA8280 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				517514522A43244B00CA8280 /* PBXTargetDependency */,
+			);
+			name = "thinkitive-video-renderer-demoTests";
+			productName = LottieVideoDemoTests;
+			productReference = 517514502A43244B00CA8280 /* thinkitive-video-renderer-demoTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		517514592A43244B00CA8280 /* thinkitive-video-renderer-demoUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5175146A2A43244B00CA8280 /* Build configuration list for PBXNativeTarget "thinkitive-video-renderer-demoUITests" */;
+			buildPhases = (
+				C0843F51D9F9D70BAAF8F244 /* [CP] Check Pods Manifest.lock */,
+				517514562A43244B00CA8280 /* Sources */,
+				517514572A43244B00CA8280 /* Frameworks */,
+				517514582A43244B00CA8280 /* Resources */,
+				AC898746D7AD59ED3B5892C5 /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5175145C2A43244B00CA8280 /* PBXTargetDependency */,
+			);
+			name = "thinkitive-video-renderer-demoUITests";
+			productName = LottieVideoDemoUITests;
+			productReference = 5175145A2A43244B00CA8280 /* thinkitive-video-renderer-demoUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		517514322A43244A00CA8280 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1420;
+				LastUpgradeCheck = 1420;
+				TargetAttributes = {
+					517514392A43244A00CA8280 = {
+						CreatedOnToolsVersion = 14.2;
+					};
+					5175144F2A43244B00CA8280 = {
+						CreatedOnToolsVersion = 14.2;
+						TestTargetID = 517514392A43244A00CA8280;
+					};
+					517514592A43244B00CA8280 = {
+						CreatedOnToolsVersion = 14.2;
+						TestTargetID = 517514392A43244A00CA8280;
+					};
+				};
+			};
+			buildConfigurationList = 517514352A43244A00CA8280 /* Build configuration list for PBXProject "thinkitive-video-renderer-demo" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 517514312A43244A00CA8280;
+			productRefGroup = 5175143B2A43244A00CA8280 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				517514392A43244A00CA8280 /* thinkitive-video-renderer-demo */,
+				5175144F2A43244B00CA8280 /* thinkitive-video-renderer-demoTests */,
+				517514592A43244B00CA8280 /* thinkitive-video-renderer-demoUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		517514382A43244A00CA8280 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5175144A2A43244B00CA8280 /* LaunchScreen.storyboard in Resources */,
+				517514472A43244B00CA8280 /* Assets.xcassets in Resources */,
+				5175146F2A4324FA00CA8280 /* dino_data.lottie in Resources */,
+				517514452A43244A00CA8280 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5175144E2A43244B00CA8280 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		517514582A43244B00CA8280 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		3975BD4AD3C3CF5B48D36F28 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-thinkitive-video-renderer-demo-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		4AD601D631055F3B8C22EADC /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-thinkitive-video-renderer-demoTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		4BBD7B057B4EA5DECB3382EF /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-thinkitive-video-renderer-demo/Pods-thinkitive-video-renderer-demo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-thinkitive-video-renderer-demo/Pods-thinkitive-video-renderer-demo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-thinkitive-video-renderer-demo/Pods-thinkitive-video-renderer-demo-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		AC898746D7AD59ED3B5892C5 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests/Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests/Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests/Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		C0843F51D9F9D70BAAF8F244 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		517514362A43244A00CA8280 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				517514752A435EF500CA8280 /* PermissionsManager.swift in Sources */,
+				517514712A43251B00CA8280 /* LottieOverlayView.swift in Sources */,
+				517514422A43244A00CA8280 /* ViewController.swift in Sources */,
+				5175143E2A43244A00CA8280 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5175144C2A43244B00CA8280 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				517514552A43244B00CA8280 /* LottieVideoDemoTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		517514562A43244B00CA8280 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				517514612A43244B00CA8280 /* LottieVideoDemoUITestsLaunchTests.swift in Sources */,
+				5175145F2A43244B00CA8280 /* LottieVideoDemoUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		517514522A43244B00CA8280 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 517514392A43244A00CA8280 /* thinkitive-video-renderer-demo */;
+			targetProxy = 517514512A43244B00CA8280 /* PBXContainerItemProxy */;
+		};
+		5175145C2A43244B00CA8280 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 517514392A43244A00CA8280 /* thinkitive-video-renderer-demo */;
+			targetProxy = 5175145B2A43244B00CA8280 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		517514432A43244A00CA8280 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				517514442A43244A00CA8280 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		517514482A43244B00CA8280 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				517514492A43244B00CA8280 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		517514622A43244B00CA8280 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		517514632A43244B00CA8280 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		517514652A43244B00CA8280 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F37614A1083DEB59D6430830 /* Pods-thinkitive-video-renderer-demo.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZRMTSKAY2A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "thinkitive-video-renderer-demo/Info.plist";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Allow access to photos to select asset for which to add an lottie overlay";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thinkitive.unreel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		517514662A43244B00CA8280 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 55B03315FA57D42782D0EACC /* Pods-thinkitive-video-renderer-demo.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZRMTSKAY2A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "thinkitive-video-renderer-demo/Info.plist";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Allow access to photos to select asset for which to add an lottie overlay";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thinkitive.unreel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		517514682A43244B00CA8280 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 16172880DE8D6C903E26285A /* Pods-thinkitive-video-renderer-demoTests.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZRMTSKAY2A;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = id.vida.FaceIdDemo.LottieVideoDemoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/thinkitive-video-renderer-demo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/thinkitive-video-renderer-demo";
+			};
+			name = Debug;
+		};
+		517514692A43244B00CA8280 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1DCF2F55610E0A825539E026 /* Pods-thinkitive-video-renderer-demoTests.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZRMTSKAY2A;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = id.vida.FaceIdDemo.LottieVideoDemoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/thinkitive-video-renderer-demo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/thinkitive-video-renderer-demo";
+			};
+			name = Release;
+		};
+		5175146B2A43244B00CA8280 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 73217253783A10CA9A37B506 /* Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZRMTSKAY2A;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = id.vida.FaceIdDemo.LottieVideoDemoUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = LottieVideoDemo;
+			};
+			name = Debug;
+		};
+		5175146C2A43244B00CA8280 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3F28AFDC46501F761248BD04 /* Pods-thinkitive-video-renderer-demo-thinkitive-video-renderer-demoUITests.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZRMTSKAY2A;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = id.vida.FaceIdDemo.LottieVideoDemoUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = LottieVideoDemo;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		517514352A43244A00CA8280 /* Build configuration list for PBXProject "thinkitive-video-renderer-demo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				517514622A43244B00CA8280 /* Debug */,
+				517514632A43244B00CA8280 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		517514642A43244B00CA8280 /* Build configuration list for PBXNativeTarget "thinkitive-video-renderer-demo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				517514652A43244B00CA8280 /* Debug */,
+				517514662A43244B00CA8280 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		517514672A43244B00CA8280 /* Build configuration list for PBXNativeTarget "thinkitive-video-renderer-demoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				517514682A43244B00CA8280 /* Debug */,
+				517514692A43244B00CA8280 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5175146A2A43244B00CA8280 /* Build configuration list for PBXNativeTarget "thinkitive-video-renderer-demoUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5175146B2A43244B00CA8280 /* Debug */,
+				5175146C2A43244B00CA8280 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 517514322A43244A00CA8280 /* Project object */;
+}
