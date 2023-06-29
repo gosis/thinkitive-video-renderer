@@ -16,7 +16,7 @@ Pod::Spec.new do |spec|
   #
 
   spec.name         = "thinkitive-video-renderer"
-  spec.version      = "1.1"
+  spec.version      = "1.2"
   spec.summary      = "Video renderer used by Thinkitive Lab to render a video or image with OverlayRenderable overlays"
   # This description is used to generate tags and improve search results.
   #   * Think: What does it do? Why did you write it? What is the focus?
@@ -82,7 +82,7 @@ Pod::Spec.new do |spec|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  spec.source       = { :git => "https://github.com/gosis/thinkitive-video-renderer.git", :tag => "#{1.1}" }
+  spec.source       = { :git => "https://github.com/gosis/thinkitive-video-renderer.git", :tag => "#{1.2}" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #

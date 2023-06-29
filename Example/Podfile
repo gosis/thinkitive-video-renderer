@@ -8,7 +8,7 @@ target 'thinkitive-video-renderer-demo' do
   # Pods for thinkitive-video-renderer
   	pod 'lottie-ios'
 	pod 'dotLottie'
-	pod 'thinkitive-video-renderer'
+	pod 'thinkitive-video-renderer', '1.2'
 
   target 'thinkitive-video-renderer-demoTests' do
     inherit! :search_paths

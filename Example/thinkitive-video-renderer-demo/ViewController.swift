@@ -4,16 +4,31 @@ import thinkitive_video_renderer
 
 class ViewController: UIViewController {
     
+    weak var containerView: UIView?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+            
         let selectButton = UIButton(type: .system)
         selectButton.translatesAutoresizingMaskIntoConstraints = false
         selectButton.setTitle("Select Photo/Video", for: .normal)
         selectButton.addTarget(self, action: #selector(selectButtonTapped), for: .touchUpInside)
         
+        let containerView = UIView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.backgroundColor = .gray // Use the color you want
+        
+        view.addSubview(containerView)
         view.addSubview(selectButton)
+    
+        self.containerView = containerView
+        
         NSLayoutConstraint.activate([
+            containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            containerView.bottomAnchor.constraint(equalTo: selectButton.topAnchor, constant: -20),
+            containerView.heightAnchor.constraint(equalToConstant: UIScreen.main.bounds.width),
+            
             selectButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             selectButton.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
@@ -44,15 +59,22 @@ class ViewController: UIViewController {
     
     private func exportVideoAsset(_ phAsset: PHAsset) {
         
-        let lottieOverlay = LottieOverlayView(frame: CGRect(x: 0, y: 0, width: 300, height: 200),
+        guard let containerView = containerView else {
+            return
+        }
+        
+        let width = CGFloat(phAsset.pixelWidth) / UIScreen.main.scale
+        let height = CGFloat(phAsset.pixelHeight) / UIScreen.main.scale
+        
+        let lottieOverlay = LottieOverlayView(frame: CGRect(origin: CGPoint.zero,
+                                                            size: CGSize(width: width, height:height)),
                                               lottieIdentifier: "dino_data")
         
-        self.view.addSubview(lottieOverlay)
-        
+        containerView.addSubview(lottieOverlay)
         
         VideoRenderer.exportVideoAsset(phAsset: phAsset,
-                                       duration: 5.0,
-                                       resolution: CGSize(width: 1920, height: 1080),
+                                       duration: 3.0,
+                                       resolution: CGSize(width: width, height: height),
                                        overlays: [lottieOverlay]) { [weak self] url, error in
             
             guard let url = url else {

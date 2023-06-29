@@ -14,38 +14,6 @@ public protocol OverlayRenderable: UIView {
     func updateTime(percentage: CGFloat)
 }
 
-private extension OverlayRenderable {
-    func rectInSize(size:CGSize) -> CGRect {
-        
-        guard let superView = self.superview else {
-            return CGRect.zero
-        }
-        
-        let myRect = self.frame
-        let superViewFrame = superView.frame
-        
-        let widthScaleFactor = size.width / superView.frame.size.width
-        let heightScaleFactor = size.height / superView.frame.size.height
-        
-        let averageScaleFactor = (widthScaleFactor + heightScaleFactor) / 2
-                
-        let newOriginX = myRect.origin.x / superViewFrame.size.width * size.width
-        let newOriginY = myRect.origin.y / superViewFrame.size.height * size.height
-        let newWidth = myRect.size.width * averageScaleFactor
-        let newHeight = myRect.size.height * averageScaleFactor
-        
-        return CGRect(x: newOriginX,
-                      y: newOriginY,
-                      width: newWidth,
-                      height: newHeight)
-    }
-    
-    func prepareToRenderInRect(rect:CGRect) {
-        self.frame = rect
-        self.layoutIfNeeded()
-    }
-}
-
 public class VideoRenderer {
     
     private enum VideoRendererError: Error, CustomDebugStringConvertible {
@@ -232,8 +200,7 @@ public class VideoRenderer {
         
         let filter = CIFilter(name: "CISourceAtopCompositing")
         for overlay in overlays {
-            let rect = overlay.rectInSize(size: size)
-            overlay.prepareToRenderInRect(rect: rect)
+            overlay.layoutIfNeeded()
         }
                         
         let mainComposition = AVMutableVideoComposition(asset: asset) { (request) in
