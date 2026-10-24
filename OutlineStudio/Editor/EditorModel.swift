@@ -77,13 +77,11 @@ final class EditorModel {
     // MARK: Media
 
     func loadSampleClip() async {
-        isLoading = true
-        do {
-            await loadVideo(from: try await SampleClip.make())
-        } catch {
-            isLoading = false
-            alertMessage = error.localizedDescription
+        guard let url = SampleClip.url else {
+            alertMessage = "The sample clip is missing from the app."
+            return
         }
+        await loadVideo(from: url)
     }
 
     func loadVideo(from url: URL) async {

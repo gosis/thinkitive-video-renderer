@@ -8,7 +8,7 @@ Built with SwiftUI, AVFoundation and Core Text. No third-party dependencies.
 
 | | |
 |---|---|
-| **Bring in footage** | Pick a video from Photos, browse Files, or generate a built-in sample clip to try the effect without footage. |
+| **Bring in footage** | Pick a video from Photos, browse Files, or open the built-in sample: a 10-second portrait clip of NASA astronaut Christina Koch talking to camera, good for trying auto captions. |
 | **Add text** | Add as many text overlays as you like. Duplicate or delete the selected one. Text can have several lines. |
 | **Place it** | Drag text directly on the video preview. Tap to select it. |
 | **Style it** | 6 single-line fonts (Script, Cursive, Relief, Sans, Serif, Gothic) where every letter is one pen line, plus 12 system fonts whose outlines trace well. Set the size, line width and colour; outline fonts also get an optional fill. Any text can have a dark shadow edge and a rounded background box behind each line, in any colour and transparency. |
@@ -54,7 +54,7 @@ OutlineStudio/
     PointerRenderer.swift       Pen-tip pointers drawn at the stroke's leading point
     VideoExporter.swift         Frame-by-frame export + save to Photos
     SpeechCaptioner.swift       On-device transcription with word timestamps
-    SampleClip.swift            Generates the built-in sample video
+    SampleClip.swift            Locates the bundled sample video
   Editor/
     EditorModel.swift           @Observable state: player, overlays, selection, export
     EditorView.swift            Screen layout (phone: stacked, iPad: side inspector), import
@@ -65,8 +65,8 @@ OutlineStudio/
     ExportStatusView.swift      Rendering progress / result card
   Components/                   PlayerLayerView, LabeledSlider, IconButton, timecode, keyboard helper
   Fonts/                        Bundled single-line SVG fonts and LICENSES.md
+  SampleMedia/                  Bundled NASA sample clip (public domain) and CREDITS.md
 OutlineStudioUITests/           UI tests: timeline scrubbing, keyboard dismissal, auto captions
-TestMedia/speaker.mp4           8-second 1080×1920 clip of someone speaking (CC BY-SA 4.0, see TestMedia/README.md)
 ```
 
 ## Design
@@ -91,7 +91,7 @@ The app follows the system appearance by default. The half-circle button in the 
 
 Open `OutlineStudio.xcodeproj`, choose your development team under *Signing & Capabilities*, and run. In the Simulator, use **Sample clip** to try the editor without footage.
 
-Run the UI tests with ⌘U. The launch argument `-useSampleClip` opens the editor straight on the sample clip, and `-openVideo <path>` opens any video file. The caption test opens `TestMedia/speaker.mp4` and needs a network connection in the Simulator, where speech recognition runs on Apple's servers. The keyboard test needs the Simulator's software keyboard (*I/O → Keyboard → uncheck Connect Hardware Keyboard*).
+Run the UI tests with ⌘U. The launch argument `-useSampleClip` opens the editor straight on the sample clip, and `-openVideo <path>` opens any video file. The caption test uses the bundled sample clip and needs a network connection in the Simulator, where speech recognition runs on Apple's servers. The keyboard test needs the Simulator's software keyboard (*I/O → Keyboard → uncheck Connect Hardware Keyboard*).
 
 ## Fonts
 

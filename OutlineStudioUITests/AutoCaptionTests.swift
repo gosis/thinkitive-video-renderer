@@ -6,19 +6,14 @@
 import XCTest
 
 final class AutoCaptionTests: XCTestCase {
-    /// `TestMedia/speaker.mp4`, a short public-domain clip of someone talking.
-    private static let speakerClip = URL(fileURLWithPath: #filePath)
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
-        .appending(path: "TestMedia/speaker.mp4")
-
     func testAutoCaptionsAddCaptionLayer() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-openVideo", Self.speakerClip.path]
+        // The bundled sample is an astronaut talking to camera
+        app.launchArguments = ["-useSampleClip"]
         app.launch()
 
         let playhead = app.otherElements["Playhead"]
-        XCTAssertTrue(playhead.waitForExistence(timeout: 20), "Editor did not open the speaker clip")
+        XCTAssertTrue(playhead.waitForExistence(timeout: 20), "Editor did not open the sample clip")
 
         // Speech permission may be requested the first time
         addUIInterruptionMonitor(withDescription: "Speech permission") { alert in
