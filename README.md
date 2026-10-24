@@ -12,6 +12,7 @@ Built with SwiftUI, AVFoundation and Core Text. No third-party dependencies.
 | **Add text** | Add as many text overlays as you like. Duplicate or delete the selected one. Text can have several lines. |
 | **Place it** | Drag text directly on the video preview. Tap to select it. |
 | **Style it** | 6 single-line fonts (Script, Cursive, Relief, Sans, Serif, Gothic) where every letter is one pen line, plus 12 system fonts whose outlines trace well. Set the size, line width and colour; outline fonts also get an optional fill. Any text can have a dark shadow edge and a rounded background box behind each line, in any colour and transparency. |
+| **Pen pointer** | Optionally show a marker riding on the point being drawn: a glowing dot, a twinkling spark, a comet with a glowing tail, or a little pencil. Off by default. |
 | **Choose how it draws** | *One by one*: glyphs are traced in reading order, like handwriting. *All at once*: every glyph is traced at the same time. |
 | **Time it** | Set the start time and draw duration, hold until the end or fade out at a chosen time, and pick an easing curve (Linear, Smooth, Ease out). |
 | **Preview** | Play, or drag anywhere on the timeline to scrub. Each text has its own lane, and the solid part of a lane shows the drawing phase. On iPhone, swipe down to close the keyboard. |
@@ -43,12 +44,14 @@ OutlineStudio/
     TextOverlay.swift           The overlay: text, font, style, position, timing
     CaptionLayer.swift          Captions: word grouping, layout, shared style
     OutlineFont.swift           Font list: single-line and outline
+    PenPointer.swift            Pointer styles
   Engine/
     GlyphOutline.swift          Text → per-glyph CGPaths (cached)
     StrokeFont.swift            SVG single-line font + SVG path parser
     OutlineGeometry.swift       Relative → absolute layout transform
     OutlineTiming.swift         Easing curves, stroke/fill/opacity over time
     OutlineRenderer.swift       Shared Core Graphics renderer
+    PointerRenderer.swift       Pen-tip pointers drawn at the stroke's leading point
     VideoExporter.swift         Frame-by-frame export + save to Photos
     SpeechCaptioner.swift       On-device transcription with word timestamps
     SampleClip.swift            Generates the built-in sample video

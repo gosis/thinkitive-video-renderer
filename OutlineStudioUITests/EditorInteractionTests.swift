@@ -66,6 +66,22 @@ final class EditorInteractionTests: XCTestCase {
         XCTAssertNotEqual(playheadTime, afterRuler, "Clip lane should scrub after the keyboard closes")
     }
 
+    func testPointerMenuDefaultsToOffAndCanBeChanged() {
+        app.buttons["Style"].tap()
+        let menu = app.buttons["pointerMenu"].firstMatch
+        XCTAssertTrue(menu.waitForExistence(timeout: 5), "Pointer menu missing from the Style tab")
+        // The chosen option shows as the menu's value or as text inside it, depending on the OS
+        let selection = {
+            ([menu.label, menu.value as? String ?? ""] + menu.staticTexts.allElementsBoundByIndex.map(\.label))
+                .joined(separator: " ")
+        }
+        XCTAssertTrue(selection().contains("Off"), "Pointer should default to Off, was \(selection())")
+
+        menu.tap()
+        app.buttons["Spark"].tap()
+        XCTAssertTrue(selection().contains("Spark"), "Choosing Spark didn't stick, was \(selection())")
+    }
+
     private func save(_ screenshot: XCUIScreenshot, as name: String) {
         let attachment = XCTAttachment(screenshot: screenshot)
         attachment.name = name

@@ -69,9 +69,13 @@ enum OutlineRenderer {
         if fillOpacity > 0 {
             fill(Path(overlay.outline.combined).applying(transform), alpha: opacity * fillOpacity, in: context)
         }
-        for path in overlay.strokePaths {
-            stroke(Path(path).applying(transform).trimmedPath(from: 0, to: progress), of: overlay,
+        let paths = overlay.strokePaths.map { Path($0).applying(transform) }
+        for path in paths {
+            stroke(path.trimmedPath(from: 0, to: progress), of: overlay,
                    lineWidth: overlay.strokeWidth(in: videoSize), in: context)
+        }
+        for path in paths {
+            drawPointer(of: overlay, along: path, progress: progress, at: time, videoSize: videoSize, in: context)
         }
     }
 
@@ -88,6 +92,9 @@ enum OutlineRenderer {
                 glyphsByWord[word].append(glyph)
             }
         }
+
+        // Glyphs mid-stroke get a pointer once all the text is drawn
+        var tips: [(path: Path, progress: CGFloat)] = []
 
         for (word, timing) in timings.enumerated() {
             let writeStart = max(timing.start - wordLead, overlay.startTime)
@@ -112,8 +119,24 @@ enum OutlineRenderer {
                 }
                 stroke(path.trimmedPath(from: 0, to: progress), of: overlay,
                        lineWidth: overlay.strokeWidth(in: videoSize), in: context)
+                if progress < 1 {
+                    tips.append((path, CGFloat(progress)))
+                }
             }
         }
+        for tip in tips {
+            drawPointer(of: overlay, along: tip.path, progress: tip.progress, at: time, videoSize: videoSize, in: context)
+        }
+    }
+
+    private static func drawPointer(of overlay: TextOverlay, along path: Path, progress: CGFloat, at time: Double,
+                                    videoSize: CGSize, in context: CGContext) {
+        guard overlay.pointer != .off else { return }
+        PointerRenderer.draw(overlay.pointer, along: path, progress: progress, time: time,
+                             color: overlay.strokeColor,
+                             lineWidth: overlay.strokeWidth(in: videoSize),
+                             fontSize: overlay.fontSize(in: videoSize),
+                             in: context)
     }
 
     /// A rounded box behind each line, padded around the text and its line width.

@@ -275,6 +275,7 @@ final class EditorModel {
             if edited.backgroundColor != current.backgroundColor { layer.style.backgroundColor = edited.backgroundColor }
             if edited.position != current.position { layer.style.position = edited.position }
             if edited.easing != current.easing { layer.style.easing = edited.easing }
+            if edited.pointer != current.pointer { layer.style.pointer = edited.pointer }
             captionLayer = layer
         }
     }

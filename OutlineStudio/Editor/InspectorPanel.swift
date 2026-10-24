@@ -151,6 +151,20 @@ struct InspectorPanel: View {
             .font(.subheadline)
             .foregroundStyle(Theme.textSecondary)
 
+            HStack {
+                Text("Pointer")
+                Spacer()
+                Picker("Pointer", selection: $overlay.pointer) {
+                    ForEach(PenPointer.allCases) { pointer in
+                        Label(pointer.title, systemImage: pointer.symbol).tag(pointer)
+                    }
+                }
+                .pickerStyle(.menu)
+                .accessibilityIdentifier("pointerMenu")
+            }
+            .font(.subheadline)
+            .foregroundStyle(Theme.textSecondary)
+
             if isCaption {
                 captionNote("Style changes apply to every caption.")
             } else {

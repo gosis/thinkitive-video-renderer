@@ -56,6 +56,8 @@ struct TextOverlay: Identifiable, Equatable {
 
     var style = DrawStyle.sequential
     var easing = Easing.easeInOut
+    /// A marker on the point being drawn; off by default.
+    var pointer = PenPointer.off
 
     /// When set, each word is written while it's spoken instead of the whole text
     /// being traced over `drawDuration`. Used by auto captions.
