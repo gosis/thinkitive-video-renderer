@@ -1,0 +1,282 @@
+//
+//  EditorView.swift
+//  OutlineStudio
+//
+
+import PhotosUI
+import SwiftUI
+import UniformTypeIdentifiers
+
+struct EditorView: View {
+    @State private var model = EditorModel()
+    @State private var pickerItem: PhotosPickerItem?
+    @State private var showPhotoPicker = false
+    @State private var showFileImporter = false
+    @AppStorage(AppearancePreference.storageKey) private var appearance: AppearancePreference = .system
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    @State private var isKeyboardVisible = false
+    @State private var layoutHeight: CGFloat = 0
+    @State private var controlsHeight: CGFloat = 0
+    @State private var editorScroll = ScrollPosition(edge: .top)
+
+    var body: some View {
+        VStack(spacing: 0) {
+            topBar
+            if model.hasVideo {
+                editor
+            } else {
+                EmptyStateView(isLoading: model.isLoading,
+                               choosePhoto: { showPhotoPicker = true },
+                               browseFiles: { showFileImporter = true },
+                               useSample: { Task { await model.loadSampleClip() } })
+            }
+        }
+        .background(Theme.background.ignoresSafeArea())
+        .photosPicker(isPresented: $showPhotoPicker, selection: $pickerItem, matching: .videos)
+        .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.movie]) { result in
+            importFile(result)
+        }
+        .task {
+            // Lets UI tests start in the editor without going through the picker
+            if ProcessInfo.processInfo.arguments.contains("-useSampleClip") {
+                await model.loadSampleClip()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+            isKeyboardVisible = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            isKeyboardVisible = false
+        }
+        .onChange(of: pickerItem) { _, item in
+            guard let item else { return }
+            Task {
+                await importPhoto(item)
+                pickerItem = nil
+            }
+        }
+        .overlay {
+            if model.exportState != .idle {
+                ExportStatusView(state: model.exportState) { model.exportState = .idle }
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeOut(duration: 0.2), value: model.exportState)
+        .alert("Something went wrong",
+               isPresented: Binding(get: { model.alertMessage != nil }, set: { if !$0 { model.alertMessage = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(model.alertMessage ?? "")
+        }
+    }
+
+    // MARK: Layout
+
+    private var topBar: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: "scribble.variable")
+                    .foregroundStyle(Theme.accent)
+                Text("Outline")
+                    .foregroundStyle(Theme.textPrimary)
+            }
+            .font(.title3.weight(.bold))
+
+            Spacer()
+
+            Menu {
+                Picker("Appearance", selection: $appearance) {
+                    ForEach(AppearancePreference.allCases) { option in
+                        Label(option.title, systemImage: option.symbol).tag(option)
+                    }
+                }
+            } label: {
+                toolbarIcon(appearance.symbol)
+            }
+            .accessibilityLabel("Appearance")
+
+            if model.hasVideo {
+                Menu {
+                    Button("Choose from Photos", systemImage: "photo.on.rectangle") { showPhotoPicker = true }
+                    Button("Browse Files", systemImage: "folder") { showFileImporter = true }
+                    Button("Sample clip", systemImage: "sparkles.tv") { Task { await model.loadSampleClip() } }
+                } label: {
+                    toolbarIcon("film.stack")
+                }
+                .accessibilityLabel("Replace video")
+
+                Button {
+                    Task { await model.export() }
+                } label: {
+                    Label("Export", systemImage: "square.and.arrow.up")
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 14)
+                        .frame(height: 36)
+                        .foregroundStyle(Theme.onAccent)
+                        .background(Theme.accent, in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+    }
+
+    private func toolbarIcon(_ symbol: String) -> some View {
+        Image(systemName: symbol)
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundStyle(Theme.textPrimary)
+            .frame(width: 36, height: 36)
+            .background(Theme.surfaceRaised, in: Circle())
+    }
+
+    @ViewBuilder
+    private var editor: some View {
+        if sizeClass == .regular {
+            HStack(alignment: .top, spacing: 16) {
+                VStack(spacing: 12) {
+                    stage
+                    transport
+                    TimelineStrip(model: model)
+                }
+                ScrollView { inspector }
+                    .scrollDismissesKeyboard(.immediately)
+                    .frame(width: 360)
+            }
+            .padding(16)
+        } else {
+            // Scrolls only while the keyboard is up, so the preview keeps its size
+            // and a downward swipe dismisses the keyboard
+            GeometryReader { proxy in
+                ScrollView {
+                    VStack(spacing: 12) {
+                        stage
+                            .frame(height: max(fullHeight(of: proxy) - controlsHeight - 12, 220))
+                        VStack(spacing: 12) {
+                            transport
+                            TimelineStrip(model: model)
+                            inspector
+                        }
+                        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { controlsHeight = $0 }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
+                }
+                .scrollPosition($editorScroll)
+                .scrollDismissesKeyboard(.immediately)
+                .scrollDisabled(!isKeyboardVisible)
+                .onChange(of: isKeyboardVisible) { _, visible in
+                    guard !visible else { return }
+                    layoutHeight = proxy.size.height
+                    withAnimation(.easeOut(duration: 0.25)) { editorScroll.scrollTo(edge: .top) }
+                }
+                .onAppear { layoutHeight = proxy.size.height }
+            }
+        }
+    }
+
+    /// Height available to the editor with the keyboard hidden.
+    private func fullHeight(of proxy: GeometryProxy) -> CGFloat {
+        isKeyboardVisible ? max(layoutHeight, proxy.size.height) : proxy.size.height
+    }
+
+    private var stage: some View {
+        PreviewCanvas(model: model)
+            .padding(10)
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("videoPreview")
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Theme.canvas, in: RoundedRectangle(cornerRadius: Theme.Radius.panel))
+    }
+
+    private var transport: some View {
+        HStack(spacing: 8) {
+            IconButton(symbol: model.isPlaying ? "pause.fill" : "play.fill",
+                       label: model.isPlaying ? "Pause" : "Play",
+                       prominent: true) {
+                model.togglePlayback()
+            }
+
+            HStack(spacing: 0) {
+                Text(model.currentTime.timecode)
+                    .foregroundStyle(Theme.textPrimary)
+                Text(" / \(model.duration.timecode)")
+                    .foregroundStyle(Theme.textSecondary)
+            }
+            .font(.system(.footnote, design: .monospaced))
+
+            Spacer()
+
+            IconButton(symbol: "plus", label: "Add text") { model.addOverlay() }
+            IconButton(symbol: "plus.square.on.square", label: "Duplicate text") { model.duplicateSelected() }
+                .disabled(model.selectedIndex == nil)
+            IconButton(symbol: "trash", label: "Delete text") { model.deleteSelected() }
+                .disabled(model.selectedIndex == nil)
+        }
+    }
+
+    @ViewBuilder
+    private var inspector: some View {
+        if let index = model.selectedIndex {
+            InspectorPanel(overlay: $model.overlays[index], duration: model.duration)
+                .id(model.overlays[index].id)
+        } else {
+            Text("Select a text on the video or timeline to edit it, or tap + to add one.")
+                .font(.subheadline)
+                .foregroundStyle(Theme.textSecondary)
+                .frame(maxWidth: .infinity, minHeight: 80)
+                .padding(16)
+                .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.panel))
+        }
+    }
+
+    // MARK: Import
+
+    private func importPhoto(_ item: PhotosPickerItem) async {
+        do {
+            guard let movie = try await item.loadTransferable(type: PickedMovie.self) else { return }
+            await model.loadVideo(from: movie.url)
+        } catch {
+            model.alertMessage = error.localizedDescription
+        }
+    }
+
+    private func importFile(_ result: Result<URL, Error>) {
+        do {
+            let source = try result.get()
+            let accessing = source.startAccessingSecurityScopedResource()
+            defer { if accessing { source.stopAccessingSecurityScopedResource() } }
+
+            let destination = PickedMovie.temporaryURL(extension: source.pathExtension)
+            try FileManager.default.copyItem(at: source, to: destination)
+            Task { await model.loadVideo(from: destination) }
+        } catch {
+            model.alertMessage = error.localizedDescription
+        }
+    }
+}
+
+/// A movie copied out of the photo library into the app's temporary directory.
+struct PickedMovie: Transferable {
+    let url: URL
+
+    static func temporaryURL(extension pathExtension: String) -> URL {
+        FileManager.default.temporaryDirectory
+            .appending(path: "Source-\(UUID().uuidString)")
+            .appendingPathExtension(pathExtension.isEmpty ? "mov" : pathExtension)
+    }
+
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(contentType: .movie) { movie in
+            SentTransferredFile(movie.url)
+        } importing: { received in
+            let destination = temporaryURL(extension: received.file.pathExtension)
+            try FileManager.default.copyItem(at: received.file, to: destination)
+            return PickedMovie(url: destination)
+        }
+    }
+}
+
+#Preview {
+    EditorView()
+}
