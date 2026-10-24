@@ -11,10 +11,11 @@ Built with SwiftUI, AVFoundation and Core Text. No third-party dependencies.
 | **Bring in footage** | Pick a video from Photos, browse Files, or generate a built-in sample clip to try the effect without footage. |
 | **Add text** | Add as many text overlays as you like. Duplicate or delete the selected one. Text can have several lines. |
 | **Place it** | Drag text directly on the video preview. Tap to select it. |
-| **Style it** | 6 single-line fonts (Script, Cursive, Relief, Sans, Serif, Gothic) where every letter is one pen line, plus 12 system fonts whose outlines trace well. Set the size, line width and colour; outline fonts also get an optional fill. |
+| **Style it** | 6 single-line fonts (Script, Cursive, Relief, Sans, Serif, Gothic) where every letter is one pen line, plus 12 system fonts whose outlines trace well. Set the size, line width and colour; outline fonts also get an optional fill. Any text can have a dark shadow edge and a rounded background box behind each line, in any colour and transparency. |
 | **Choose how it draws** | *One by one*: glyphs are traced in reading order, like handwriting. *All at once*: every glyph is traced at the same time. |
 | **Time it** | Set the start time and draw duration, hold until the end or fade out at a chosen time, and pick an easing curve (Linear, Smooth, Ease out). |
 | **Preview** | Play, or drag anywhere on the timeline to scrub. Each text has its own lane, and the solid part of a lane shows the drawing phase. On iPhone, swipe down to close the keyboard. |
+| **Auto captions** | Tap the speech-bubble button and Outline transcribes the video's English speech on device, groups it into short captions on a new **Captions** layer, and writes each word as it's spoken. Edit a caption's text and timing, or restyle all captions at once. |
 | **Export** | Renders at the video's full resolution and saves to Photos, with a progress readout. |
 
 ## How the effect works
@@ -29,6 +30,7 @@ Built with SwiftUI, AVFoundation and Core Text. No third-party dependencies.
    - **Export:** `VideoExporter` builds an `AVMutableVideoComposition` with a Core Image handler. For every frame it draws the visible overlays into a transparent bitmap and composites that over the source frame. Source frames already have the track's orientation applied, so portrait footage stays upright.
 
    Because both paths call the same code, the export matches the preview.
+5. **Auto captions.** `SpeechCaptioner` copies the soundtrack to an `.m4a`, then transcribes it with iOS 26's on-device `SpeechAnalyzer`/`SpeechTranscriber`, which gives the time range of every word. Where that model isn't available (including the Simulator) it falls back to `SFSpeechRecognizer`. Word times are then tightened against the audio itself: `VoiceActivity` measures loudness in the voice band against the clip's own noise floor and trims each word to where it's actually voiced. `CaptionLayer` groups the words into captions at pauses, sentence ends and length limits, wraps or shrinks each one to fit the frame, and records each word's characters and timing (`WordTiming`). The renderer then traces each word's glyphs as that word is spoken, starting 60 ms early and taking at most 0.6 s per word, which reads as in sync; each caption is gone before the next one starts. Captions get a dark under-stroke so they stay readable on bright footage.
 
 ## Project layout
 
@@ -39,6 +41,7 @@ OutlineStudio/
   Theme/Theme.swift             Colour tokens (light + dark), radii, appearance setting
   Model/
     TextOverlay.swift           The overlay: text, font, style, position, timing
+    CaptionLayer.swift          Captions: word grouping, layout, shared style
     OutlineFont.swift           Font list: single-line and outline
   Engine/
     GlyphOutline.swift          Text → per-glyph CGPaths (cached)
@@ -47,6 +50,7 @@ OutlineStudio/
     OutlineTiming.swift         Easing curves, stroke/fill/opacity over time
     OutlineRenderer.swift       Shared Core Graphics renderer
     VideoExporter.swift         Frame-by-frame export + save to Photos
+    SpeechCaptioner.swift       On-device transcription with word timestamps
     SampleClip.swift            Generates the built-in sample video
   Editor/
     EditorModel.swift           @Observable state: player, overlays, selection, export
@@ -58,7 +62,8 @@ OutlineStudio/
     ExportStatusView.swift      Rendering progress / result card
   Components/                   PlayerLayerView, LabeledSlider, IconButton, timecode, keyboard helper
   Fonts/                        Bundled single-line SVG fonts and LICENSES.md
-OutlineStudioUITests/           UI tests: timeline scrubbing, keyboard dismissal
+OutlineStudioUITests/           UI tests: timeline scrubbing, keyboard dismissal, auto captions
+TestMedia/speaker.mp4           8-second 1080×1920 clip of someone speaking (CC BY-SA 4.0, see TestMedia/README.md)
 ```
 
 ## Design
@@ -78,12 +83,12 @@ The app follows the system appearance by default. The half-circle button in the 
 
 ## Requirements
 
-- iOS / iPadOS 18+
+- iOS / iPadOS 26+ (for on-device speech transcription)
 - Xcode 26+
 
 Open `OutlineStudio.xcodeproj`, choose your development team under *Signing & Capabilities*, and run. In the Simulator, use **Sample clip** to try the editor without footage.
 
-Run the UI tests with ⌘U. The launch argument `-useSampleClip` opens the editor straight on the sample clip. The keyboard test needs the Simulator's software keyboard (*I/O → Keyboard → uncheck Connect Hardware Keyboard*).
+Run the UI tests with ⌘U. The launch argument `-useSampleClip` opens the editor straight on the sample clip, and `-openVideo <path>` opens any video file. The caption test opens `TestMedia/speaker.mp4` and needs a network connection in the Simulator, where speech recognition runs on Apple's servers. The keyboard test needs the Simulator's software keyboard (*I/O → Keyboard → uncheck Connect Hardware Keyboard*).
 
 ## Fonts
 

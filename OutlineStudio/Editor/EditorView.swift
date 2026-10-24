@@ -38,8 +38,11 @@ struct EditorView: View {
         }
         .task {
             // Lets UI tests start in the editor without going through the picker
-            if ProcessInfo.processInfo.arguments.contains("-useSampleClip") {
+            let arguments = ProcessInfo.processInfo.arguments
+            if arguments.contains("-useSampleClip") {
                 await model.loadSampleClip()
+            } else if let flag = arguments.firstIndex(of: "-openVideo"), arguments.indices.contains(flag + 1) {
+                await model.loadVideo(from: URL(fileURLWithPath: arguments[flag + 1]))
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
@@ -59,9 +62,13 @@ struct EditorView: View {
             if model.exportState != .idle {
                 ExportStatusView(state: model.exportState) { model.exportState = .idle }
                     .transition(.opacity)
+            } else if model.isCaptioning {
+                captioningStatus
+                    .transition(.opacity)
             }
         }
         .animation(.easeOut(duration: 0.2), value: model.exportState)
+        .animation(.easeOut(duration: 0.2), value: model.isCaptioning)
         .alert("Something went wrong",
                isPresented: Binding(get: { model.alertMessage != nil }, set: { if !$0 { model.alertMessage = nil } })) {
             Button("OK", role: .cancel) {}
@@ -197,21 +204,31 @@ struct EditorView: View {
                 model.togglePlayback()
             }
 
-            HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text(model.currentTime.timecode)
+                    .font(.system(.footnote, design: .monospaced))
                     .foregroundStyle(Theme.textPrimary)
-                Text(" / \(model.duration.timecode)")
+                Text(model.duration.timecode)
+                    .font(.system(.caption2, design: .monospaced))
                     .foregroundStyle(Theme.textSecondary)
             }
-            .font(.system(.footnote, design: .monospaced))
+            .lineLimit(1)
+            .fixedSize()
+            .accessibilityElement(children: .combine)
 
             Spacer()
 
+            IconButton(symbol: "captions.bubble", label: "Auto captions") {
+                Task { await model.generateCaptions() }
+            }
+            .disabled(model.isCaptioning)
             IconButton(symbol: "plus", label: "Add text") { model.addOverlay() }
             IconButton(symbol: "plus.square.on.square", label: "Duplicate text") { model.duplicateSelected() }
                 .disabled(model.selectedIndex == nil)
-            IconButton(symbol: "trash", label: "Delete text") { model.deleteSelected() }
-                .disabled(model.selectedIndex == nil)
+            IconButton(symbol: "trash", label: model.selectedCaptionIndex == nil ? "Delete text" : "Delete caption") {
+                model.deleteSelected()
+            }
+            .disabled(model.selectedIndex == nil && model.selectedCaptionIndex == nil)
         }
     }
 
@@ -220,13 +237,36 @@ struct EditorView: View {
         if let index = model.selectedIndex {
             InspectorPanel(overlay: $model.overlays[index], duration: model.duration)
                 .id(model.overlays[index].id)
+        } else if let id = model.selectedCaptionID, model.selectedCaptionIndex != nil {
+            InspectorPanel(overlay: model.captionBinding(for: id), duration: model.duration, isCaption: true)
+                .id(id)
         } else {
-            Text("Select a text on the video or timeline to edit it, or tap + to add one.")
+            Text("Select a text on the video or timeline to edit it, tap + to add one, or tap the speech bubble for auto captions.")
                 .font(.subheadline)
                 .foregroundStyle(Theme.textSecondary)
                 .frame(maxWidth: .infinity, minHeight: 80)
                 .padding(16)
                 .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.panel))
+        }
+    }
+
+    private var captioningStatus: some View {
+        ZStack {
+            Color.black.opacity(0.45).ignoresSafeArea()
+            VStack(spacing: 14) {
+                ProgressView()
+                    .controlSize(.large)
+                Text("Listening for speech…")
+                    .font(.headline)
+                    .foregroundStyle(Theme.textPrimary)
+                Text("Captions are made on this device.")
+                    .font(.footnote)
+                    .foregroundStyle(Theme.textSecondary)
+            }
+            .padding(24)
+            .frame(width: 280)
+            .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.panel))
+            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.panel).strokeBorder(Theme.hairline))
         }
     }
 

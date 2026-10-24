@@ -14,6 +14,8 @@ struct InspectorPanel: View {
 
     @Binding var overlay: TextOverlay
     let duration: Double
+    /// Captions write themselves along with the speech and share one style.
+    var isCaption = false
     @State private var tab = Tab.text
 
     var body: some View {
@@ -135,16 +137,68 @@ struct InspectorPanel: View {
             .font(.subheadline)
             .foregroundStyle(Theme.textSecondary)
 
-            Picker("Draw", selection: $overlay.style) {
-                ForEach(TextOverlay.DrawStyle.allCases) { Text($0.title).tag($0) }
+            HStack(spacing: 16) {
+                Toggle("Shadow", isOn: $overlay.shadowEnabled)
+                    .fixedSize()
+                Divider().frame(height: 24)
+                Toggle("Background", isOn: $overlay.backgroundEnabled)
+                    .fixedSize()
+                ColorPicker("Background colour", selection: $overlay.backgroundColor, supportsOpacity: true)
+                    .labelsHidden()
+                    .disabled(!overlay.backgroundEnabled)
+                    .opacity(overlay.backgroundEnabled ? 1 : 0.4)
             }
-            .pickerStyle(.segmented)
+            .font(.subheadline)
+            .foregroundStyle(Theme.textSecondary)
+
+            if isCaption {
+                captionNote("Style changes apply to every caption.")
+            } else {
+                drawStylePicker
+            }
         }
+    }
+
+    private var drawStylePicker: some View {
+        Picker("Draw", selection: $overlay.style) {
+            ForEach(TextOverlay.DrawStyle.allCases) { Text($0.title).tag($0) }
+        }
+        .pickerStyle(.segmented)
     }
 
     // MARK: Timing
 
+    @ViewBuilder
     private var timingSection: some View {
+        if isCaption {
+            captionTimingSection
+        } else {
+            textTimingSection
+        }
+    }
+
+    /// A caption's span; its words keep their spoken rhythm within it.
+    private var captionTimingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            LabeledSlider(title: "Start",
+                          value: $overlay.startTime,
+                          range: 0...max(duration - 0.1, 0.1),
+                          format: \.timecode)
+            LabeledSlider(title: "Fade out at",
+                          value: Binding(get: { overlay.endTime ?? duration }, set: { overlay.endTime = $0 }),
+                          range: min(overlay.startTime + 0.2, duration)...max(duration, overlay.startTime + 0.3),
+                          format: \.timecode)
+            captionNote("Each word writes itself as it's spoken.")
+        }
+    }
+
+    private func captionNote(_ text: String) -> some View {
+        Label(text, systemImage: "captions.bubble")
+            .font(.footnote)
+            .foregroundStyle(Theme.textSecondary)
+    }
+
+    private var textTimingSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             LabeledSlider(title: "Start",
                           value: startBinding,

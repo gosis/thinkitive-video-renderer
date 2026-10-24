@@ -9,9 +9,10 @@ import UIKit
 /// Editor palette.
 ///
 /// Graphite neutrals keep attention on the footage, a warm coral accent marks
-/// actions and selection, cyan marks clips on the timeline and amber the playhead —
-/// the same roles colour plays in pro editing tools. Every token has a light and a
-/// dark value and resolves through the current trait collection.
+/// actions and selection, cyan marks clips on the timeline, violet marks auto
+/// captions and amber the playhead — the same roles colour plays in pro editing
+/// tools. Every token has a light and a dark value and resolves through the
+/// current trait collection.
 enum Theme {
     /// Letterbox area behind the video preview.
     static let canvas        = Color(light: 0xDCDFE5, dark: 0x08090B)
@@ -26,6 +27,8 @@ enum Theme {
     static let accent        = Color(light: 0xE0482B, dark: 0xFF6A4D)
     static let onAccent      = Color.white
     static let clip          = Color(light: 0x0F8FB0, dark: 0x3CC6E6)
+    /// Auto captions on the timeline and their selection.
+    static let caption       = Color(light: 0x7A4FE0, dark: 0xA88BFF)
     static let playhead      = Color(light: 0xE8A400, dark: 0xFFCE3D)
 
     enum Radius {

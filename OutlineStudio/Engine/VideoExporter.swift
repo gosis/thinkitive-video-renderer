@@ -31,13 +31,12 @@ enum VideoExporter {
 
         // Source frames arrive with the track's preferred transform applied,
         // so portrait footage stays upright and matches the preview's render size
-        let composition = try await AVMutableVideoComposition.videoComposition(with: asset) { request in
-            let time = request.compositionTime.seconds
-            guard let overlayImage = overlayImage(for: overlays, at: time, size: request.renderSize) else {
-                request.finish(with: request.sourceImage, context: nil)
-                return
+        let composition = try await AVVideoComposition(applyingFiltersTo: asset) { frame in
+            let time = frame.compositionTime.seconds
+            guard let overlayImage = overlayImage(for: overlays, at: time, size: frame.renderSize) else {
+                return AVCIImageFilteringResult(resultImage: frame.sourceImage)
             }
-            request.finish(with: overlayImage.composited(over: request.sourceImage), context: nil)
+            return AVCIImageFilteringResult(resultImage: overlayImage.composited(over: frame.sourceImage))
         }
 
         guard let session = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {

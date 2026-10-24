@@ -44,14 +44,19 @@ struct TimelineStrip: View {
 
     // MARK: Layout
 
+    /// Text lanes plus one shared lane for captions.
+    private var laneCount: Int {
+        max(model.overlays.count + (model.captionLayer == nil ? 0 : 1), 1)
+    }
+
     private var laneHeight: CGFloat {
-        let count = CGFloat(max(model.overlays.count, 1))
+        let count = CGFloat(laneCount)
         let fitted = (maxLanesHeight - (count - 1) * laneSpacing) / count
         return min(max(fitted, minLaneHeight), maxLaneHeight)
     }
 
     private var lanesHeight: CGFloat {
-        let count = CGFloat(max(model.overlays.count, 1))
+        let count = CGFloat(laneCount)
         return count * laneHeight + (count - 1) * laneSpacing
     }
 
@@ -116,7 +121,10 @@ struct TimelineStrip: View {
 
     private func lanes(width: CGFloat) -> some View {
         VStack(spacing: laneSpacing) {
-            if model.overlays.isEmpty {
+            if let layer = model.captionLayer {
+                captionLane(layer, width: width)
+            }
+            if model.overlays.isEmpty && model.captionLayer == nil {
                 Text("No text yet")
                     .font(.caption)
                     .foregroundStyle(Theme.textSecondary)
@@ -127,6 +135,33 @@ struct TimelineStrip: View {
             }
         }
         .frame(height: lanesHeight, alignment: .top)
+    }
+
+    /// Every caption as a block on one lane; the solid part is when its words are spoken.
+    private func captionLane(_ layer: CaptionLayer, width: CGFloat) -> some View {
+        ZStack(alignment: .leading) {
+            Rectangle().fill(Theme.surfaceRaised.opacity(0.5))
+
+            ForEach(layer.captions) { caption in
+                let start = x(for: caption.start, width: width)
+                let end = x(for: min(caption.end + CaptionLayer.hold, model.duration), width: width)
+                let isSelected = caption.id == model.selectedCaptionID
+
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(Theme.caption.opacity(isSelected ? 1 : 0.55))
+                    .overlay(RoundedRectangle(cornerRadius: 5)
+                        .strokeBorder(isSelected ? Theme.onAccent.opacity(0.9) : .clear, lineWidth: 1.5))
+                    .frame(width: max(end - start - 2, 6))
+                    .offset(x: start)
+                    .contentShape(Rectangle())
+                    .onTapGesture { model.selectCaption(caption.id) }
+                    .accessibilityElement()
+                    .accessibilityLabel("Caption \(caption.text)")
+                    .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+            }
+        }
+        .frame(height: laneHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 
     private func clip(for overlay: TextOverlay, width: CGFloat) -> some View {

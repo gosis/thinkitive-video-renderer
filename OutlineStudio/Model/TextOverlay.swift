@@ -38,6 +38,11 @@ struct TextOverlay: Identifiable, Equatable {
     var strokeColor = CGColor(red: 1, green: 1, blue: 1, alpha: 1)
     var fillEnabled = true
     var fillColor = CGColor(red: 1, green: 1, blue: 1, alpha: 1)
+    /// A dark edge that keeps light text readable over bright footage.
+    var shadowEnabled = false
+    /// A rounded box behind each line of text.
+    var backgroundEnabled = false
+    var backgroundColor = CGColor(gray: 0, alpha: 0.6)
 
     /// Centre of the text in unit coordinates, top-left origin.
     var position = CGPoint(x: 0.5, y: 0.5)
@@ -51,4 +56,15 @@ struct TextOverlay: Identifiable, Equatable {
 
     var style = DrawStyle.sequential
     var easing = Easing.easeInOut
+
+    /// When set, each word is written while it's spoken instead of the whole text
+    /// being traced over `drawDuration`. Used by auto captions.
+    var wordTimings: [WordTiming]?
+}
+
+/// The span of `TextOverlay.text` (in characters) that is written between two times.
+struct WordTiming: Equatable {
+    var characters: Range<Int>
+    var start: Double
+    var end: Double
 }

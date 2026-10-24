@@ -20,7 +20,7 @@ struct PreviewCanvas: View {
 
                 Canvas { context, size in
                     context.withCGContext { cgContext in
-                        for overlay in model.overlays {
+                        for overlay in model.renderedOverlays {
                             OutlineRenderer.draw(overlay, at: model.currentTime, in: cgContext, videoSize: size)
                         }
                     }
@@ -48,40 +48,61 @@ struct PreviewCanvas: View {
                 .onTapGesture {
                     dismissKeyboard()
                     model.selectedID = nil
+                    model.selectedCaptionID = nil
                 }
 
             ForEach($model.overlays) { $overlay in
-                let frame = overlay.frame(in: videoSize)
-                let isSelected = overlay.id == model.selectedID
+                handle(for: overlay, videoSize: videoSize, isSelected: overlay.id == model.selectedID,
+                       color: Theme.accent,
+                       select: { model.selectedID = overlay.id },
+                       move: { overlay.position = $0 })
+            }
 
-                Rectangle()
-                    .fill(Color.clear)
-                    .contentShape(Rectangle())
-                    .frame(width: max(frame.width, 44), height: max(frame.height, 44))
-                    .overlay {
-                        if isSelected {
-                            RoundedRectangle(cornerRadius: 4)
-                                .strokeBorder(Theme.accent, style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
-                        }
-                    }
-                    .position(x: frame.midX, y: frame.midY)
-                    .onTapGesture { model.selectedID = overlay.id }
-                    .gesture(
-                        DragGesture(minimumDistance: 2)
-                            .onChanged { value in
-                                let origin = dragOrigin ?? overlay.position
-                                if dragOrigin == nil {
-                                    dragOrigin = origin
-                                    model.selectedID = overlay.id
-                                }
-                                overlay.position = CGPoint(
-                                    x: min(max(origin.x + value.translation.width / videoSize.width, 0), 1),
-                                    y: min(max(origin.y + value.translation.height / videoSize.height, 0), 1))
-                            }
-                            .onEnded { _ in dragOrigin = nil }
-                    )
+            // Captions share one position, so dragging any of them moves them all
+            ForEach(visibleCaptions) { caption in
+                handle(for: caption, videoSize: videoSize, isSelected: caption.id == model.selectedCaptionID,
+                       color: Theme.caption,
+                       select: { model.selectedCaptionID = caption.id },
+                       move: { model.moveCaptions(to: $0) })
             }
         }
         .frame(width: videoSize.width, height: videoSize.height)
+    }
+
+    /// Captions on screen now; only those can be tapped or dragged.
+    private var visibleCaptions: [TextOverlay] {
+        model.captionOverlays.filter { caption in
+            model.currentTime >= caption.startTime && caption.opacity(at: model.currentTime) > 0
+        }
+    }
+
+    private func handle(for overlay: TextOverlay, videoSize: CGSize, isSelected: Bool, color: Color,
+                        select: @escaping () -> Void, move: @escaping (CGPoint) -> Void) -> some View {
+        let frame = overlay.frame(in: videoSize)
+        return Rectangle()
+            .fill(Color.clear)
+            .contentShape(Rectangle())
+            .frame(width: max(frame.width, 44), height: max(frame.height, 44))
+            .overlay {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 4)
+                        .strokeBorder(color, style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+                }
+            }
+            .position(x: frame.midX, y: frame.midY)
+            .onTapGesture(perform: select)
+            .gesture(
+                DragGesture(minimumDistance: 2)
+                    .onChanged { value in
+                        let origin = dragOrigin ?? overlay.position
+                        if dragOrigin == nil {
+                            dragOrigin = origin
+                            select()
+                        }
+                        move(CGPoint(x: min(max(origin.x + value.translation.width / videoSize.width, 0), 1),
+                                     y: min(max(origin.y + value.translation.height / videoSize.height, 0), 1)))
+                    }
+                    .onEnded { _ in dragOrigin = nil }
+            )
     }
 }

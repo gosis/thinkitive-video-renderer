@@ -19,6 +19,12 @@ final class GlyphOutline {
 
     /// Glyph paths in reading order.
     let glyphs: [CGPath]
+    /// For each glyph, the index of the character in the text it was drawn for.
+    let glyphCharacters: [Int]
+    /// One box per non-empty line: the line's ink width by its ascender-to-descender height.
+    let lineBoxes: [CGRect]
+    /// For each line box, the index of the first character drawn on that line.
+    let lineFirstCharacters: [Int]
     /// All glyphs in one path; tracing it draws the glyphs one after another.
     let combined: CGPath
     let bounds: CGRect
@@ -43,8 +49,19 @@ final class GlyphOutline {
         let lines = text.components(separatedBy: .newlines)
         let blockTop = -lineHeight * CGFloat(lines.count) / 2
 
+        let descent = CTFontGetDescent(font)
         var glyphs: [CGPath] = []
+        var glyphCharacters: [Int] = []
+        var lineBoxes: [CGRect] = []
+        var lineFirstCharacters: [Int] = []
+        var lineStart = 0
         for (index, line) in lines.enumerated() {
+            let firstGlyph = glyphs.count
+            defer { lineStart += line.count + 1 }
+            // Core Text reports UTF-16 offsets; map them back to character indices
+            let characterAtUTF16 = line.indices.flatMap { index in
+                Array(repeating: line.distance(from: line.startIndex, to: index), count: line[index].utf16.count)
+            }
             let attributed = NSAttributedString(string: line,
                                                 attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font])
             let ctLine = CTLineCreateWithAttributedString(attributed)
@@ -60,8 +77,10 @@ final class GlyphOutline {
                 let count = CTRunGetGlyphCount(run)
                 var glyphIDs = [CGGlyph](repeating: 0, count: count)
                 var positions = [CGPoint](repeating: .zero, count: count)
+                var stringIndices = [CFIndex](repeating: 0, count: count)
                 CTRunGetGlyphs(run, CFRange(), &glyphIDs)
                 CTRunGetPositions(run, CFRange(), &positions)
+                CTRunGetStringIndices(run, CFRange(), &stringIndices)
 
                 for i in 0..<count {
                     // Flip CoreText's y-up glyph space and move the glyph onto its baseline
@@ -71,11 +90,18 @@ final class GlyphOutline {
                     guard let path = CTFontCreatePathForGlyph(runFont, glyphIDs[i], &transform),
                           !path.isEmpty else { continue }
                     glyphs.append(path)
+                    let utf16 = stringIndices[i]
+                    glyphCharacters.append(lineStart + (characterAtUTF16.indices.contains(utf16) ? characterAtUTF16[utf16] : 0))
                 }
+            }
+            if let box = Self.lineBox(glyphs[firstGlyph...], top: baseline - ascent, bottom: baseline + descent) {
+                lineBoxes.append(box)
+                lineFirstCharacters.append(glyphCharacters[firstGlyph])
             }
         }
 
-        self.init(glyphs: glyphs)
+        self.init(glyphs: glyphs, glyphCharacters: glyphCharacters,
+                  lineBoxes: lineBoxes, lineFirstCharacters: lineFirstCharacters)
     }
 
     /// Lays out a single-line font, scaled so capitals match a regular font's proportions.
@@ -86,13 +112,19 @@ final class GlyphOutline {
         let blockTop = -lineHeight * CGFloat(lines.count) / 2
 
         var glyphs: [CGPath] = []
+        var glyphCharacters: [Int] = []
+        var lineBoxes: [CGRect] = []
+        var lineFirstCharacters: [Int] = []
+        var lineStart = 0
         for (index, line) in lines.enumerated() {
+            let firstGlyph = glyphs.count
+            defer { lineStart += line.count + 1 }
             let glyphsInLine = line.map { strokeFont.glyphs[$0] }
             let lineWidth = glyphsInLine.reduce(0) { $0 + ($1?.advance ?? strokeFont.defaultAdvance) } * scale
             var penX = -lineWidth / 2
             let baseline = blockTop + CGFloat(index) * lineHeight + Self.referenceSize * 0.95
 
-            for glyph in glyphsInLine {
+            for (offset, glyph) in glyphsInLine.enumerated() {
                 let advance = (glyph?.advance ?? strokeFont.defaultAdvance) * scale
                 defer { penX += advance }
                 guard let glyph, !glyph.path.isEmpty else { continue }
@@ -100,18 +132,35 @@ final class GlyphOutline {
                 var transform = CGAffineTransform(a: scale, b: 0, c: 0, d: -scale, tx: penX, ty: baseline)
                 if let path = glyph.path.copy(using: &transform) {
                     glyphs.append(path)
+                    glyphCharacters.append(lineStart + offset)
                 }
+            }
+            // Capitals reach 0.7 of the reference size; leave room above and for descenders
+            if let box = Self.lineBox(glyphs[firstGlyph...],
+                                      top: baseline - Self.referenceSize * 0.95,
+                                      bottom: baseline + Self.referenceSize * 0.3) {
+                lineBoxes.append(box)
+                lineFirstCharacters.append(glyphCharacters[firstGlyph])
             }
         }
 
-        self.init(glyphs: glyphs)
+        self.init(glyphs: glyphs, glyphCharacters: glyphCharacters,
+                  lineBoxes: lineBoxes, lineFirstCharacters: lineFirstCharacters)
     }
 
-    private init(glyphs: [CGPath]) {
+    private static func lineBox(_ glyphs: ArraySlice<CGPath>, top: CGFloat, bottom: CGFloat) -> CGRect? {
+        guard let ink = glyphs.map(\.boundingBoxOfPath).reduce(nil, { $0?.union($1) ?? $1 }) else { return nil }
+        return CGRect(x: ink.minX, y: top, width: ink.width, height: bottom - top)
+    }
+
+    private init(glyphs: [CGPath], glyphCharacters: [Int], lineBoxes: [CGRect], lineFirstCharacters: [Int]) {
         let combined = CGMutablePath()
         glyphs.forEach { combined.addPath($0) }
 
         self.glyphs = glyphs
+        self.glyphCharacters = glyphCharacters
+        self.lineBoxes = lineBoxes
+        self.lineFirstCharacters = lineFirstCharacters
         self.combined = combined
         self.bounds = combined.isEmpty ? .zero : combined.boundingBoxOfPath
     }
