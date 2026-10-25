@@ -68,9 +68,12 @@ struct EmptyStateView: View {
             Canvas { context, size in
                 var overlay = TextOverlay()
                 overlay.text = "Inkcap"
-                overlay.fontName = OutlineFont.defaultFont.postScriptName
-                overlay.relativeSize = 0.55
-                overlay.strokeWidthRatio = 0.02
+                // Connected and slanted, like a signature; echoes the icon's loop
+                overlay.fontName = "CursiveScript"
+                overlay.relativeSize = 0.5
+                overlay.strokeWidthRatio = 0.045
+                overlay.pointer = .dot
+                overlay.easing = .easeInOut
                 overlay.strokeColor = Theme.accent.resolve(in: environment).cgColor
                 overlay.fillColor = Theme.textPrimary.resolve(in: environment).cgColor
                 overlay.startTime = 0.2
