@@ -33,8 +33,7 @@ struct InspectorPanel: View {
             }
         }
         .padding(16)
-        .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.panel))
-        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.panel).strokeBorder(Theme.hairline))
+        .glassPanel()
     }
 
     // MARK: Text
@@ -46,7 +45,7 @@ struct InspectorPanel: View {
                 .font(.body.weight(.medium))
                 .foregroundStyle(Theme.textPrimary)
                 .padding(10)
-                .background(Theme.surfaceRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.control))
+                .background(Theme.inset, in: RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous))
                 .accessibilityIdentifier("overlayText")
 
             fontPicker
@@ -98,7 +97,7 @@ struct InspectorPanel: View {
             .padding(.horizontal, 11)
             .frame(height: 30)
             .foregroundStyle(isShown ? Theme.accent : Theme.textSecondary)
-            .background(isShown ? Theme.accent.opacity(0.14) : Theme.surfaceRaised, in: Capsule())
+            .background(isShown ? Theme.accent.opacity(0.18) : Theme.inset, in: Capsule())
             .overlay(Capsule().strokeBorder(isShown ? Theme.accent.opacity(0.6) : .clear, lineWidth: 1))
         }
         .buttonStyle(.plain)
@@ -130,8 +129,8 @@ struct InspectorPanel: View {
                         .padding(5)
                 }
             }
-            .background(isSelected ? Theme.accent.opacity(0.14) : Theme.surfaceRaised,
-                        in: RoundedRectangle(cornerRadius: Theme.Radius.control))
+            .background(isSelected ? Theme.accent.opacity(0.18) : Theme.inset,
+                        in: RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control)
                 .strokeBorder(isSelected ? Theme.accent : .clear, lineWidth: 1.5))
         }

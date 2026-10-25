@@ -25,8 +25,13 @@ final class AutoCaptionTests: XCTestCase {
 
         // The sample opens already captioned; regenerating must transcribe it again
         app.buttons["Auto captions"].tap()
+        // Short clips can finish before the "Listening" card is ever seen, so accept
+        // either the card or the result: regenerating selects the first caption
         let listening = app.staticTexts["Listening for speech…"]
-        XCTAssertTrue(listening.waitForExistence(timeout: 5), "Captioning didn't start")
+        let editing = app.buttons["Timing"]
+        let started = NSPredicate { _, _ in listening.exists || editing.exists }
+        expectation(for: started, evaluatedWith: nil)
+        waitForExpectations(timeout: 5)
         // Interruption monitors only run on the next interaction; tap somewhere inert
         app.staticTexts["Inkcap"].firstMatch.tap()
 

@@ -35,16 +35,17 @@ struct EmptyStateView: View {
                 Button(action: choosePhoto) {
                     Label("Choose from Photos", systemImage: "photo.on.rectangle")
                         .font(.headline)
-                        .frame(maxWidth: .infinity, minHeight: 50)
-                        .foregroundStyle(Theme.onAccent)
-                        .background(Theme.accent, in: RoundedRectangle(cornerRadius: Theme.Radius.control + 2))
+                        .frame(maxWidth: .infinity, minHeight: 36)
                 }
+                .buttonStyle(.glassProminent)
+                .tint(Theme.accent)
                 HStack(spacing: 10) {
                     secondaryButton("Browse Files", symbol: "folder", action: browseFiles)
                     secondaryButton("Sample clip", symbol: "sparkles.tv", action: useSample)
                 }
             }
-            .buttonStyle(.plain)
+            .controlSize(.large)
+            .glassGroup(spacing: 10)
             .disabled(isLoading)
             .padding(.horizontal, 24)
             .frame(maxWidth: 440)
@@ -57,7 +58,7 @@ struct EmptyStateView: View {
                 ProgressView()
                     .controlSize(.large)
                     .padding(24)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Theme.Radius.panel))
+                    .glassPanel()
             }
         }
     }
@@ -92,17 +93,19 @@ struct EmptyStateView: View {
         Button(action: action) {
             Label(title, systemImage: symbol)
                 .font(.subheadline.weight(.semibold))
-                .frame(maxWidth: .infinity, minHeight: 46)
+                .frame(maxWidth: .infinity, minHeight: 32)
                 .foregroundStyle(Theme.textPrimary)
-                .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.control + 2))
-                .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control + 2).strokeBorder(Theme.hairline))
         }
+        .buttonStyle(.glass)
     }
 }
 
 /// Soft brand-coloured light drifting slowly behind the start screen, plus faint
 /// handwritten loops, so the backdrop feels alive without competing with the title.
 struct AmbientGlow: View {
+    /// Scales how strong the lights are; the editor uses a softer glow.
+    var intensity = 1.0
+    var showsLoops = true
     @Environment(\.colorScheme) private var colorScheme
 
     private struct Light {
@@ -121,7 +124,7 @@ struct AmbientGlow: View {
         TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
             Canvas { context, size in
-                let strength = colorScheme == .dark ? 0.32 : 0.22
+                let strength = (colorScheme == .dark ? 0.32 : 0.22) * intensity
                 let extent = max(size.width, size.height)
                 for light in lights {
                     let center = CGPoint(
@@ -137,7 +140,8 @@ struct AmbientGlow: View {
 
                 // Two faint pen loops sweeping across, echoing the logo
                 let ink = (colorScheme == .dark ? Color.white : Theme.accent).opacity(colorScheme == .dark ? 0.05 : 0.07)
-                for (index, offset) in [0.28, 0.74].enumerated() {
+                let loopRows: [Double] = showsLoops ? [0.28, 0.74] : []
+                for (index, offset) in loopRows.enumerated() {
                     let y = size.height * offset
                     let drift = sin(time * 0.05 + Double(index) * 1.7) * 20
                     var loop = Path()

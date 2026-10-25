@@ -29,7 +29,7 @@ struct LabeledSlider: View {
     }
 }
 
-/// Compact icon button used in the transport bar and toolbar.
+/// Round Liquid Glass icon button used in the transport bar and toolbar.
 struct IconButton: View {
     let symbol: String
     let label: String
@@ -37,15 +37,21 @@ struct IconButton: View {
     let action: () -> Void
 
     var body: some View {
+        if prominent {
+            button.buttonStyle(.glassProminent).tint(Theme.accent)
+        } else {
+            // Neutral, so only the main action carries the accent
+            button.buttonStyle(.glass).foregroundStyle(Theme.textPrimary)
+        }
+    }
+
+    private var button: some View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 15, weight: .semibold))
-                .frame(width: 36, height: 36)
-                .foregroundStyle(prominent ? Theme.onAccent : Theme.textPrimary)
-                .background(prominent ? Theme.accent : Theme.surfaceRaised,
-                            in: RoundedRectangle(cornerRadius: Theme.Radius.control))
+                .frame(width: 22, height: 22)
         }
-        .buttonStyle(.plain)
+        .buttonBorderShape(.circle)
         .accessibilityLabel(label)
     }
 }

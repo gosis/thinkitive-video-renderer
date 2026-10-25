@@ -31,10 +31,11 @@ struct EditorView: View {
             }
         }
         .background {
-            // The start screen's glow runs edge to edge, behind the top bar too
+            // Glass needs colour behind it: the brand glow runs edge to edge, softer
+            // and without the pen loops once a video is open
             ZStack {
                 Theme.background
-                if !model.hasVideo { AmbientGlow() }
+                AmbientGlow(intensity: model.hasVideo ? 0.7 : 1, showsLoops: !model.hasVideo)
             }
             .ignoresSafeArea()
         }
@@ -126,14 +127,14 @@ struct EditorView: View {
                 } label: {
                     Label("Export", systemImage: "square.and.arrow.up")
                         .font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 14)
-                        .frame(height: 36)
-                        .foregroundStyle(Theme.onAccent)
-                        .background(Theme.accent, in: Capsule())
+                        .padding(.horizontal, 4)
+                        .frame(height: 24)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.glassProminent)
+                .tint(Theme.accent)
             }
         }
+        .glassGroup(spacing: 10)
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
     }
@@ -142,8 +143,8 @@ struct EditorView: View {
         Image(systemName: symbol)
             .font(.system(size: 15, weight: .semibold))
             .foregroundStyle(Theme.textPrimary)
-            .frame(width: 36, height: 36)
-            .background(Theme.surfaceRaised, in: Circle())
+            .frame(width: 40, height: 40)
+            .glassEffect(.regular.interactive(), in: Circle())
     }
 
     @ViewBuilder
@@ -153,7 +154,7 @@ struct EditorView: View {
                 VStack(spacing: 12) {
                     stage
                     transport
-                    TimelineStrip(model: model)
+                    timeline
                 }
                 ScrollView { inspector }
                     .scrollDismissesKeyboard(.immediately)
@@ -172,7 +173,7 @@ struct EditorView: View {
                         stage
                             .frame(minHeight: 220, maxHeight: .infinity)
                         transport
-                        TimelineStrip(model: model)
+                        timeline
                         inspector
                     }
                     .padding(.horizontal, 16)
@@ -202,7 +203,7 @@ struct EditorView: View {
         ZStack {
             // Taps anywhere on the stage that miss the text, including the letterbox
             // around the video, leave editing
-            Theme.canvas
+            Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture { model.clearSelection() }
                 .accessibilityIdentifier("stage")
@@ -213,7 +214,13 @@ struct EditorView: View {
                 .padding(10)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.panel))
+        .glassPanel(cornerRadius: 28)
+    }
+
+    private var timeline: some View {
+        TimelineStrip(model: model)
+            .padding(10)
+            .glassPanel(cornerRadius: 20)
     }
 
     private var transport: some View {
@@ -250,6 +257,7 @@ struct EditorView: View {
             }
             .disabled(model.selectedIndex == nil && model.selectedCaptionIndex == nil)
         }
+        .glassGroup(spacing: 8)
     }
 
     @ViewBuilder
@@ -268,7 +276,7 @@ struct EditorView: View {
                 .foregroundStyle(Theme.textSecondary)
                 .frame(maxWidth: .infinity, minHeight: 80)
                 .padding(16)
-                .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.panel))
+                .glassPanel()
                 .transition(.opacity)
         }
     }
@@ -290,7 +298,7 @@ struct EditorView: View {
 
     private var captioningStatus: some View {
         ZStack {
-            Color.black.opacity(0.45).ignoresSafeArea()
+            Color.black.opacity(0.25).ignoresSafeArea()
             VStack(spacing: 14) {
                 ProgressView()
                     .controlSize(.large)
@@ -303,8 +311,7 @@ struct EditorView: View {
             }
             .padding(24)
             .frame(width: 280)
-            .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.panel))
-            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.panel).strokeBorder(Theme.hairline))
+            .glassPanel(cornerRadius: 28)
         }
     }
 

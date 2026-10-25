@@ -109,7 +109,7 @@ struct TimelineStrip: View {
             }
         }
         .frame(height: rulerHeight)
-        .background(Theme.surfaceRaised, in: RoundedRectangle(cornerRadius: 6))
+        .background(Theme.inset, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .contentShape(Rectangle())
         .gesture(
             DragGesture(minimumDistance: 0)
@@ -145,7 +145,7 @@ struct TimelineStrip: View {
     /// Every caption as a block on one lane; the solid part is when its words are spoken.
     private func captionLane(_ layer: CaptionLayer, width: CGFloat) -> some View {
         ZStack(alignment: .leading) {
-            Rectangle().fill(Theme.surfaceRaised.opacity(0.5))
+            Rectangle().fill(Theme.inset)
 
             // Each block spans exactly when its caption is on screen, so blocks never overlap
             ForEach(Array(zip(layer.captions, model.captionOverlays)), id: \.0.id) { caption, overlay in
@@ -180,7 +180,7 @@ struct TimelineStrip: View {
         let color = isSelected ? Theme.accent : Theme.clip
 
         return ZStack(alignment: .leading) {
-            Rectangle().fill(Theme.surfaceRaised.opacity(0.5))
+            Rectangle().fill(Theme.inset)
 
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 6)

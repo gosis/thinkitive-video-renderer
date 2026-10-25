@@ -12,7 +12,7 @@ struct ExportStatusView: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.45).ignoresSafeArea()
+            Color.black.opacity(0.25).ignoresSafeArea()
 
             VStack(spacing: 16) {
                 switch state {
@@ -37,8 +37,7 @@ struct ExportStatusView: View {
             .foregroundStyle(Theme.textPrimary)
             .padding(24)
             .frame(width: 280)
-            .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.panel))
-            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.panel).strokeBorder(Theme.hairline))
+            .glassPanel(cornerRadius: 28)
         }
     }
 
@@ -56,7 +55,7 @@ struct ExportStatusView: View {
                 .multilineTextAlignment(.center)
         }
         Button("Done", action: dismiss)
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.glassProminent)
             .tint(Theme.accent)
     }
 }

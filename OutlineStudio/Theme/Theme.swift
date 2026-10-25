@@ -31,9 +31,24 @@ enum Theme {
     static let caption       = Color(light: 0x7A4FE0, dark: 0xA88BFF)
     static let playhead      = Color(light: 0xE8A400, dark: 0xFFCE3D)
 
+    /// Soft fill for controls that sit on a glass panel; glass inside glass looks muddy.
+    static let inset = Color.primary.opacity(0.07)
+
     enum Radius {
-        static let panel: CGFloat = 16
-        static let control: CGFloat = 10
+        static let panel: CGFloat = 24
+        static let control: CGFloat = 14
+    }
+}
+
+extension View {
+    /// A Liquid Glass surface: panels, cards and bars.
+    func glassPanel(cornerRadius: CGFloat = Theme.Radius.panel) -> some View {
+        glassEffect(.regular, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+    }
+
+    /// Groups glass shapes so neighbours blend and morph into each other.
+    func glassGroup(spacing: CGFloat) -> some View {
+        GlassEffectContainer(spacing: spacing) { self }
     }
 }
 
