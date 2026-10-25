@@ -9,6 +9,9 @@ import SwiftUI
 /// Video preview with live overlays. Overlays can be selected with a tap and moved by dragging.
 struct PreviewCanvas: View {
     @Bindable var model: EditorModel
+    /// Off while typing, so a swipe on the video scrolls (and dismisses the keyboard)
+    /// instead of dragging text around.
+    var allowsDragging = true
     @State private var dragOrigin: CGPoint?
 
     var body: some View {
@@ -45,26 +48,25 @@ struct PreviewCanvas: View {
         ZStack {
             Color.clear
                 .contentShape(Rectangle())
-                .onTapGesture {
-                    dismissKeyboard()
-                    model.selectedID = nil
-                    model.selectedCaptionID = nil
+                .onTapGesture { model.clearSelection() }
+
+            Group {
+                ForEach($model.overlays) { $overlay in
+                    handle(for: overlay, videoSize: videoSize, isSelected: overlay.id == model.selectedID,
+                           color: Theme.accent,
+                           select: { model.selectedID = overlay.id },
+                           move: { overlay.position = $0 })
                 }
 
-            ForEach($model.overlays) { $overlay in
-                handle(for: overlay, videoSize: videoSize, isSelected: overlay.id == model.selectedID,
-                       color: Theme.accent,
-                       select: { model.selectedID = overlay.id },
-                       move: { overlay.position = $0 })
+                // Captions share one position, so dragging any of them moves them all
+                ForEach(visibleCaptions) { caption in
+                    handle(for: caption, videoSize: videoSize, isSelected: caption.id == model.selectedCaptionID,
+                           color: Theme.caption,
+                           select: { model.selectedCaptionID = caption.id },
+                           move: { model.moveCaptions(to: $0) })
+                }
             }
-
-            // Captions share one position, so dragging any of them moves them all
-            ForEach(visibleCaptions) { caption in
-                handle(for: caption, videoSize: videoSize, isSelected: caption.id == model.selectedCaptionID,
-                       color: Theme.caption,
-                       select: { model.selectedCaptionID = caption.id },
-                       move: { model.moveCaptions(to: $0) })
-            }
+            .allowsHitTesting(allowsDragging)
         }
         .frame(width: videoSize.width, height: videoSize.height)
     }
@@ -92,7 +94,8 @@ struct PreviewCanvas: View {
             .position(x: frame.midX, y: frame.midY)
             .onTapGesture(perform: select)
             .gesture(
-                DragGesture(minimumDistance: 2)
+                // Far enough that a wobbly tap selects rather than nudges
+                DragGesture(minimumDistance: 8)
                     .onChanged { value in
                         let origin = dragOrigin ?? overlay.position
                         if dragOrigin == nil {

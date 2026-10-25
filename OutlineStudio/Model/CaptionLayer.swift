@@ -98,14 +98,17 @@ struct CaptionLayer: Equatable {
         return captions
     }
 
-    /// The overlay that draws `caption`, sized so it fits a video of `aspectRatio` (width / height).
-    func overlay(for caption: Caption, aspectRatio: CGFloat) -> TextOverlay {
+    /// The overlay that draws `caption`, sized so it fits a video of `aspectRatio`
+    /// (width / height) and written before the video ends at `videoDuration`.
+    func overlay(for caption: Caption, aspectRatio: CGFloat, videoDuration: Double) -> TextOverlay {
         var overlay = style
         overlay.id = caption.id
-        // Appear just ahead of the first word, matching the renderer's lead
-        overlay.startTime = max(caption.start - OutlineRenderer.wordLead, 0)
+        // Appear just ahead of the first word, but not until the previous caption has gone
+        overlay.startTime = max(caption.start - OutlineRenderer.wordLead, previousGone(before: caption), 0)
         overlay.drawDuration = max(caption.end - caption.start, 0.1)
         overlay.endTime = holdEnd(for: caption)
+        // Leave time for the last letters' fill to fade in before the video ends
+        overlay.writeBy = videoDuration - 0.2
 
         // One line if it fits at (nearly) the set size, otherwise wrap onto two
         layOut(caption.words, wrapped: false, into: &overlay, aspectRatio: aspectRatio)
@@ -126,12 +129,18 @@ struct CaptionLayer: Equatable {
         overlay.relativeSize = width > 0 ? min(style.relativeSize, 0.9 * aspectRatio / width) : style.relativeSize
     }
 
-    /// When a caption starts fading: after its hold, or early enough that it's gone
-    /// before the next caption begins writing, so two captions never overlap.
+    /// When a caption starts fading: after its hold, or sooner if the next caption
+    /// is close, but never before its own last word has been spoken.
     private func holdEnd(for caption: Caption) -> Double {
         let next = captions.first { $0.start > caption.start }?.start ?? .infinity
         let clear = next - OutlineRenderer.wordLead - TextOverlay.fadeOutDuration
-        return max(min(caption.end + Self.hold, clear), caption.start + 0.1)
+        return max(min(caption.end + Self.hold, clear), caption.end)
+    }
+
+    /// When the caption before this one has finished fading, so the two never overlap.
+    private func previousGone(before caption: Caption) -> Double {
+        guard let previous = captions.last(where: { $0.start < caption.start }) else { return 0 }
+        return holdEnd(for: previous) + TextOverlay.fadeOutDuration
     }
 
     /// Joins words with spaces, optionally wrapping near the middle, and returns

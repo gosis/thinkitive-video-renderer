@@ -17,6 +17,7 @@ struct InspectorPanel: View {
     /// Captions write themselves along with the speech and share one style.
     var isCaption = false
     @State private var tab = Tab.text
+    @State private var fontCategory = OutlineFont.Category.handwriting
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -48,34 +49,61 @@ struct InspectorPanel: View {
                 .background(Theme.surfaceRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.control))
                 .accessibilityIdentifier("overlayText")
 
-            fontRow
+            fontPicker
         }
     }
 
-    /// One scrolling row: single-line fonts first, then outline fonts.
-    private var fontRow: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                fontGroup(.singleLine, fonts: OutlineFont.singleLine)
-                Divider().frame(height: 48)
-                fontGroup(.outline, fonts: OutlineFont.outline)
+    /// Fonts grouped by use: pick a group, then a font in it.
+    private var fontPicker: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(OutlineFont.Category.allCases) { category in
+                        categoryPill(category)
+                    }
+                }
             }
-        }
-    }
 
-    private func fontGroup(_ kind: OutlineFont.Kind, fonts: [OutlineFont]) -> some View {
-        HStack(spacing: 8) {
-            Text(kind.shortTitle.uppercased())
-                .font(.caption2.weight(.semibold))
+            Text(fontCategory.summary)
+                .font(.caption)
                 .foregroundStyle(Theme.textSecondary)
-                .fixedSize()
-                .rotationEffect(.degrees(-90))
-                .frame(width: 14)
-                .accessibilityHidden(true)
-            ForEach(fonts) { font in
-                fontChip(font)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(OutlineFont.fonts(in: fontCategory)) { font in
+                        fontChip(font)
+                    }
+                }
             }
+            .id(fontCategory)
         }
+        .onAppear { fontCategory = overlay.font.category }
+    }
+
+    private func categoryPill(_ category: OutlineFont.Category) -> some View {
+        let isShown = category == fontCategory
+        // A dot marks the group holding the current font when another group is shown
+        let holdsCurrent = category == overlay.font.category && !isShown
+        return Button {
+            fontCategory = category
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: category.symbol)
+                Text(category.title)
+                if holdsCurrent {
+                    Circle().fill(Theme.accent).frame(width: 5, height: 5)
+                }
+            }
+            .font(.footnote.weight(.semibold))
+            .padding(.horizontal, 11)
+            .frame(height: 30)
+            .foregroundStyle(isShown ? Theme.accent : Theme.textSecondary)
+            .background(isShown ? Theme.accent.opacity(0.14) : Theme.surfaceRaised, in: Capsule())
+            .overlay(Capsule().strokeBorder(isShown ? Theme.accent.opacity(0.6) : .clear, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(category.title) fonts")
+        .accessibilityAddTraits(isShown ? .isSelected : [])
     }
 
     private func fontChip(_ font: OutlineFont) -> some View {
@@ -89,8 +117,19 @@ struct InspectorPanel: View {
                 Text(font.displayName)
                     .font(.caption2)
                     .foregroundStyle(Theme.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
-            .frame(width: 68, height: 60)
+            .frame(width: 72, height: 60)
+            .overlay(alignment: .topTrailing) {
+                // Single-line fonts draw with one pen line and have no fill
+                if font.kind == .singleLine {
+                    Image(systemName: "pencil.line")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(Theme.textSecondary)
+                        .padding(5)
+                }
+            }
             .background(isSelected ? Theme.accent.opacity(0.14) : Theme.surfaceRaised,
                         in: RoundedRectangle(cornerRadius: Theme.Radius.control))
             .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control)
@@ -98,6 +137,7 @@ struct InspectorPanel: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(font.displayName), \(font.kind.title)")
+        .accessibilityIdentifier("font-\(font.postScriptName)")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
@@ -202,7 +242,13 @@ struct InspectorPanel: View {
                           value: Binding(get: { overlay.endTime ?? duration }, set: { overlay.endTime = $0 }),
                           range: min(overlay.startTime + 0.2, duration)...max(duration, overlay.startTime + 0.3),
                           format: \.timecode)
-            captionNote("Each word writes itself as it's spoken.")
+            Picker("Writing", selection: $overlay.writingPace) {
+                ForEach(WritingPace.allCases) { Text($0.title).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            captionNote(overlay.writingPace == .smooth
+                        ? "The pen writes steadily through each caption, keeping up with the speech."
+                        : "Each word writes itself in the moment it's spoken.")
         }
     }
 

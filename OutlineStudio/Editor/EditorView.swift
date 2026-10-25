@@ -16,7 +16,6 @@ struct EditorView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var isKeyboardVisible = false
     @State private var layoutHeight: CGFloat = 0
-    @State private var controlsHeight: CGFloat = 0
     @State private var editorScroll = ScrollPosition(edge: .top)
 
     var body: some View {
@@ -82,9 +81,9 @@ struct EditorView: View {
     private var topBar: some View {
         HStack(spacing: 10) {
             HStack(spacing: 6) {
-                Image(systemName: "scribble.variable")
-                    .foregroundStyle(Theme.accent)
-                Text("Outline")
+                InkcapMark()
+                    .frame(width: 26, height: 26)
+                Text("Inkcap")
                     .foregroundStyle(Theme.textPrimary)
             }
             .font(.title3.weight(.bold))
@@ -151,23 +150,25 @@ struct EditorView: View {
                     .frame(width: 360)
             }
             .padding(16)
+            .animation(Self.modeAnimation, value: isEditing)
         } else {
             // Scrolls only while the keyboard is up, so the preview keeps its size
             // and a downward swipe dismisses the keyboard
             GeometryReader { proxy in
                 ScrollView {
+                    // The column fills the screen and the video takes the height the controls
+                    // leave, so opening the inspector resizes everything in one animation
                     VStack(spacing: 12) {
                         stage
-                            .frame(height: max(fullHeight(of: proxy) - controlsHeight - 12, 220))
-                        VStack(spacing: 12) {
-                            transport
-                            TimelineStrip(model: model)
-                            inspector
-                        }
-                        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { controlsHeight = $0 }
+                            .frame(minHeight: 220, maxHeight: .infinity)
+                        transport
+                        TimelineStrip(model: model)
+                        inspector
                     }
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
+                    .frame(minHeight: fullHeight(of: proxy))
+                    .animation(Self.modeAnimation, value: isEditing)
                 }
                 .scrollPosition($editorScroll)
                 .scrollDismissesKeyboard(.immediately)
@@ -188,12 +189,21 @@ struct EditorView: View {
     }
 
     private var stage: some View {
-        PreviewCanvas(model: model)
-            .padding(10)
-            .accessibilityElement(children: .contain)
-            .accessibilityIdentifier("videoPreview")
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Theme.canvas, in: RoundedRectangle(cornerRadius: Theme.Radius.panel))
+        ZStack {
+            // Taps anywhere on the stage that miss the text, including the letterbox
+            // around the video, leave editing
+            Theme.canvas
+                .contentShape(Rectangle())
+                .onTapGesture { model.clearSelection() }
+                .accessibilityIdentifier("stage")
+
+            PreviewCanvas(model: model, allowsDragging: !isKeyboardVisible)
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("videoPreview")
+                .padding(10)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.panel))
     }
 
     private var transport: some View {
@@ -237,9 +247,11 @@ struct EditorView: View {
         if let index = model.selectedIndex {
             InspectorPanel(overlay: $model.overlays[index], duration: model.duration)
                 .id(model.overlays[index].id)
+                .transition(Self.inspectorTransition)
         } else if let id = model.selectedCaptionID, model.selectedCaptionIndex != nil {
             InspectorPanel(overlay: model.captionBinding(for: id), duration: model.duration, isCaption: true)
                 .id(id)
+                .transition(Self.inspectorTransition)
         } else {
             Text("Select a text on the video or timeline to edit it, tap + to add one, or tap the speech bubble for auto captions.")
                 .font(.subheadline)
@@ -247,8 +259,24 @@ struct EditorView: View {
                 .frame(maxWidth: .infinity, minHeight: 80)
                 .padding(16)
                 .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.panel))
+                .transition(.opacity)
         }
     }
+
+    // MARK: Watching ↔ editing
+
+    /// Whether a layer is selected and the inspector is open.
+    private var isEditing: Bool {
+        model.selectedIndex != nil || model.selectedCaptionIndex != nil
+    }
+
+    /// Used when the inspector opens or closes; switching between layers stays instant.
+    private static let modeAnimation = Animation.snappy(duration: 0.32)
+
+    /// The inspector rises from below as editing starts and fades as it ends.
+    private static let inspectorTransition = AnyTransition.asymmetric(
+        insertion: .move(edge: .bottom).combined(with: .opacity),
+        removal: .opacity)
 
     private var captioningStatus: some View {
         ZStack {

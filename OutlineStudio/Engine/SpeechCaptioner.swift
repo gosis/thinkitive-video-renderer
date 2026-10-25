@@ -18,7 +18,7 @@ enum SpeechCaptioner {
             switch self {
             case .noAudio: "This video has no sound to caption."
             case .languageUnavailable: "English speech recognition isn't available on this device."
-            case .permissionDenied: "Allow speech recognition for Outline in Settings to make captions."
+            case .permissionDenied: "Allow speech recognition for Inkcap in Settings to make captions."
             case .noSpeech: "No speech was found in this video."
             }
         }

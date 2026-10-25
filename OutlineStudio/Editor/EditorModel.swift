@@ -43,6 +43,9 @@ final class EditorModel {
     @ObservationIgnored private var endObserver: NSObjectProtocol?
 
     init() {
+        // Font parsing takes a moment; do it before anyone opens the font picker
+        Task.detached(priority: .utility) { StrokeFont.preloadAll() }
+
         player.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 60), queue: .main) { [weak self] time in
             MainActor.assumeIsolated {
                 self?.currentTime = time.seconds
@@ -71,7 +74,7 @@ final class EditorModel {
 
     var captionOverlays: [TextOverlay] {
         guard let captionLayer else { return [] }
-        return captionLayer.captions.map { captionLayer.overlay(for: $0, aspectRatio: aspectRatio) }
+        return captionLayer.captions.map { captionLayer.overlay(for: $0, aspectRatio: aspectRatio, videoDuration: duration) }
     }
 
     // MARK: Media
@@ -82,6 +85,11 @@ final class EditorModel {
             return
         }
         await loadVideo(from: url)
+        guard videoURL == url else { return }
+        // Only the transcribed speech, no placeholder text
+        overlays = []
+        selectedID = nil
+        captionLayer = SampleClip.captionLayer
     }
 
     func loadVideo(from url: URL) async {
@@ -244,13 +252,13 @@ final class EditorModel {
                 return TextOverlay()
             }
             // Show the plain sentence for editing rather than the wrapped layout
-            var overlay = layer.overlay(for: caption, aspectRatio: aspectRatio)
+            var overlay = layer.overlay(for: caption, aspectRatio: aspectRatio, videoDuration: duration)
             overlay.text = caption.text
             return overlay
         } set: { [self] edited in
             guard var layer = captionLayer,
                   let index = layer.captions.firstIndex(where: { $0.id == id }) else { return }
-            let current = layer.overlay(for: layer.captions[index], aspectRatio: aspectRatio)
+            let current = layer.overlay(for: layer.captions[index], aspectRatio: aspectRatio, videoDuration: duration)
 
             if edited.text != layer.captions[index].text {
                 layer.captions[index].setText(edited.text)
@@ -274,15 +282,23 @@ final class EditorModel {
             if edited.position != current.position { layer.style.position = edited.position }
             if edited.easing != current.easing { layer.style.easing = edited.easing }
             if edited.pointer != current.pointer { layer.style.pointer = edited.pointer }
+            if edited.writingPace != current.writingPace { layer.style.writingPace = edited.writingPace }
             captionLayer = layer
         }
+    }
+
+    /// Back to watching: nothing selected and the keyboard put away.
+    func clearSelection() {
+        dismissKeyboard()
+        selectedID = nil
+        selectedCaptionID = nil
     }
 
     /// Selects a caption and moves the playhead into it so it's on screen.
     func selectCaption(_ id: Caption.ID) {
         selectedCaptionID = id
         if let caption = captionLayer?.captions.first(where: { $0.id == id }),
-           currentTime < caption.start || currentTime > caption.end {
+           currentTime < caption.start || currentTime > caption.end + CaptionLayer.hold {
             scrub(to: min(caption.start + 0.05, duration))
         }
     }

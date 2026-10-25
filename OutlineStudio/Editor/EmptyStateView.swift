@@ -67,7 +67,7 @@ struct EmptyStateView: View {
             let time = timeline.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: loop)
             Canvas { context, size in
                 var overlay = TextOverlay()
-                overlay.text = "Outline"
+                overlay.text = "Inkcap"
                 overlay.fontName = OutlineFont.defaultFont.postScriptName
                 overlay.relativeSize = 0.55
                 overlay.strokeWidthRatio = 0.02

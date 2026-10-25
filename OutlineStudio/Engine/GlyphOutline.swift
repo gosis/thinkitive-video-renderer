@@ -21,6 +21,8 @@ final class GlyphOutline {
     let glyphs: [CGPath]
     /// For each glyph, the index of the character in the text it was drawn for.
     let glyphCharacters: [Int]
+    /// For each glyph, the length of its stroke, so a pen can move at an even speed.
+    let glyphLengths: [CGFloat]
     /// One box per non-empty line: the line's ink width by its ascender-to-descender height.
     let lineBoxes: [CGRect]
     /// For each line box, the index of the first character drawn on that line.
@@ -159,6 +161,7 @@ final class GlyphOutline {
 
         self.glyphs = glyphs
         self.glyphCharacters = glyphCharacters
+        self.glyphLengths = glyphs.map(\.approximateLength)
         self.lineBoxes = lineBoxes
         self.lineFirstCharacters = lineFirstCharacters
         self.combined = combined

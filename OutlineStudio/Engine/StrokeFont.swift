@@ -38,6 +38,13 @@ final class StrokeFont {
         return font
     }
 
+    /// Parses every bundled font ahead of time so the font picker opens without a pause.
+    static func preloadAll() {
+        for font in OutlineFont.singleLine {
+            _ = named(font.postScriptName)
+        }
+    }
+
     private static let lock = NSLock()
     private static var loaded: [String: StrokeFont?] = [:]
 
@@ -90,7 +97,7 @@ private final class SVGFontReader: NSObject, XMLParserDelegate {
 ///
 /// The Hershey fonts date from 1960s plotters and store every curve as a short
 /// polyline snapped to a coarse grid, which looks faceted at video sizes. Each
-/// straight run is relaxed to remove the grid jitter, then drawn as a quadratic
+/// straight run is blurred to remove the grid jitter, then drawn as a quadratic
 /// B-spline. Cusps, where the pen nearly
 /// reverses, and joins between two long straight strokes are kept as corners, so
 /// letters like "v" or "H" stay crisp while loops and bowls become round.
@@ -212,29 +219,50 @@ enum PolylineSmoother {
 
     /// Evens out the jitter of grid-snapped plotter coordinates.
     ///
-    /// The stretch is resampled at an even spacing, then repeated neighbour
-    /// averaging acts like a Gaussian blur over roughly one grid cell. That removes
-    /// the snapping while barely changing the letter (curves shrink by ~2%).
-    /// Open stretches keep their end points fixed, so letters still join up.
+    /// The stretch is resampled at an even spacing, then blurred with a Gaussian
+    /// over roughly one grid cell. That removes the snapping while barely changing
+    /// the letter (curves shrink by ~2%). Open stretches keep their end points
+    /// fixed, so letters still join up.
     private static func relaxed(_ points: [CGPoint], closed: Bool, unit: CGFloat) -> [CGPoint] {
-        let spacing = unit * 0.006
+        let spacing = unit * 0.012
         let blurRadius = unit * 0.06
-        var dense = resampled(points, closed: closed, spacing: spacing)
-        let n = dense.count
-        guard n > 2 else { return dense }
+        let samples = resampled(points, closed: closed, spacing: spacing)
+        let n = samples.count
+        guard n > 2 else { return samples }
 
-        // Each pass spreads a point over its neighbours; enough passes give the blur radius
-        let passes = Int((blurRadius * blurRadius) / (0.5 * spacing * spacing))
-        for _ in 0..<passes {
-            let current = dense
-            for i in 0..<n {
-                if !closed && (i == 0 || i == n - 1) { continue }
-                let previous = current[(i - 1 + n) % n], next = current[(i + 1) % n]
-                dense[i].x = (previous.x + 2 * current[i].x + next.x) / 4
-                dense[i].y = (previous.y + 2 * current[i].y + next.y) / 4
+        let sigma = blurRadius / spacing
+        let reach = Int((sigma * 3).rounded(.up))
+        let weights = (-reach...reach).map { exp(-CGFloat($0 * $0) / (2 * sigma * sigma)) }
+        let first = samples[0], last = samples[n - 1]
+
+        /// Neighbour `index`, wrapping for loops and mirrored through the ends of open
+        /// strokes, which keeps the ends and their direction in place.
+        func sample(_ index: Int) -> CGPoint {
+            if closed { return samples[((index % n) + n) % n] }
+            if index < 0 {
+                let mirror = samples[min(-index, n - 1)]
+                return CGPoint(x: 2 * first.x - mirror.x, y: 2 * first.y - mirror.y)
             }
+            if index >= n {
+                let mirror = samples[max(2 * (n - 1) - index, 0)]
+                return CGPoint(x: 2 * last.x - mirror.x, y: 2 * last.y - mirror.y)
+            }
+            return samples[index]
         }
-        return dense
+
+        var blurred = samples
+        for i in 0..<n {
+            if !closed && (i == 0 || i == n - 1) { continue }
+            var x: CGFloat = 0, y: CGFloat = 0, total: CGFloat = 0
+            for (offset, weight) in zip(-reach...reach, weights) {
+                let p = sample(i + offset)
+                x += p.x * weight
+                y += p.y * weight
+                total += weight
+            }
+            blurred[i] = CGPoint(x: x / total, y: y / total)
+        }
+        return blurred
     }
 
     /// Points evenly spaced along the polyline, including its end points when open.

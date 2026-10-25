@@ -16,7 +16,7 @@ enum VideoExporter {
         var errorDescription: String? {
             switch self {
             case .unsupportedAsset: "This video can't be exported."
-            case .photoAccessDenied: "Allow Outline to add to your photo library in Settings to save videos."
+            case .photoAccessDenied: "Allow Inkcap to add to your photo library in Settings to save videos."
             }
         }
     }
@@ -45,7 +45,7 @@ enum VideoExporter {
         session.videoComposition = composition
 
         let outputURL = FileManager.default.temporaryDirectory
-            .appending(path: "Outline-\(UUID().uuidString).mov")
+            .appending(path: "Inkcap-\(UUID().uuidString).mov")
 
         let monitor = Task { @MainActor in
             for await state in session.states(updateInterval: 0.1) {

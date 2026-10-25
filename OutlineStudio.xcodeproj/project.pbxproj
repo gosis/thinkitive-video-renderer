@@ -256,9 +256,9 @@
 				DEVELOPMENT_TEAM = 3DBHY8KQTN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Outline;
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Outline saves your rendered videos to your photo library.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Outline listens to your video's audio on this device to write captions.";
+				INFOPLIST_KEY_CFBundleDisplayName = Inkcap;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Inkcap saves your rendered videos to your photo library.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Inkcap listens to your video's audio on this device to write captions.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -287,9 +287,9 @@
 				DEVELOPMENT_TEAM = 3DBHY8KQTN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Outline;
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Outline saves your rendered videos to your photo library.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Outline listens to your video's audio on this device to write captions.";
+				INFOPLIST_KEY_CFBundleDisplayName = Inkcap;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Inkcap saves your rendered videos to your photo library.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Inkcap listens to your video's audio on this device to write captions.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

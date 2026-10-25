@@ -28,6 +28,10 @@ enum Easing: String, CaseIterable, Identifiable {
 
     /// Evaluates the cubic Bézier timing curve, matching the CSS / Core Animation presets.
     func apply(_ x: Double) -> Double {
+        // Exact at the ends: the solver below lands a hair short of 1, which would
+        // leave a finished stroke looking unfinished
+        guard x > 0 else { return 0 }
+        guard x < 1 else { return 1 }
         guard self != .linear else { return x }
         let c = controlPoints
 

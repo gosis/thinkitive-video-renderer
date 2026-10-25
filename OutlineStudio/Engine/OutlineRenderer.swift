@@ -24,6 +24,10 @@ enum OutlineRenderer {
     /// Writing time per word: most of its spoken length, within these bounds, so
     /// quick words stay legible and long ones don't drag.
     private static let wordDurationRange = 0.18...0.6
+    /// Progress this close to the end counts as finished, so no pointer is left behind.
+    static let finishedTolerance = 0.001
+    /// The smooth pen never trails a spoken word by more than this, in seconds.
+    private static let smoothMaxLag = 0.5
     /// How long a glyph's fill takes to fade in once its outline is traced.
     private static let glyphFillFade = 0.15
 
@@ -79,13 +83,20 @@ enum OutlineRenderer {
         }
     }
 
-    /// Writes each word during the time it's spoken, its letters one after another.
+    /// How far one glyph is drawn at a moment, and how much of its fill shows.
+    private struct GlyphState {
+        let glyph: Int
+        let progress: Double
+        let fillOpacity: Double
+    }
+
+    /// Writes word-timed text, its letters one after another, at the overlay's writing pace.
     private static func drawWordByWord(_ overlay: TextOverlay, timings: [WordTiming], at time: Double,
                                        in context: CGContext, videoSize: CGSize, opacity: Double) {
         let outline = overlay.outline
         let transform = overlay.transform(in: videoSize)
 
-        // Group glyphs by the word their character belongs to
+        // Glyphs grouped by the word their character belongs to, in reading order
         var glyphsByWord = Array(repeating: [Int](), count: timings.count)
         for (glyph, character) in outline.glyphCharacters.enumerated() {
             if let word = timings.firstIndex(where: { $0.characters.contains(character) }) {
@@ -93,9 +104,35 @@ enum OutlineRenderer {
             }
         }
 
+        let states = switch overlay.writingPace {
+        case .synced: syncedStates(overlay, timings: timings, glyphsByWord: glyphsByWord, at: time)
+        case .smooth: smoothStates(overlay, timings: timings, glyphsByWord: glyphsByWord, at: time)
+        }
+
         // Glyphs mid-stroke get a pointer once all the text is drawn
         var tips: [(path: Path, progress: CGFloat)] = []
+        for state in states where state.progress > 0 {
+            // Summed stroke lengths can leave a finished glyph a rounding error short
+            let progress = state.progress > 1 - finishedTolerance ? 1 : state.progress
+            let path = Path(outline.glyphs[state.glyph]).applying(transform)
+            if overlay.drawsFill, state.fillOpacity > 0 {
+                fill(path, alpha: opacity * state.fillOpacity, in: context)
+            }
+            stroke(path.trimmedPath(from: 0, to: progress), of: overlay,
+                   lineWidth: overlay.strokeWidth(in: videoSize), in: context)
+            if progress < 1 {
+                tips.append((path, CGFloat(progress)))
+            }
+        }
+        for tip in tips {
+            drawPointer(of: overlay, along: tip.path, progress: tip.progress, at: time, videoSize: videoSize, in: context)
+        }
+    }
 
+    /// Each word is written in the moment it's spoken.
+    private static func syncedStates(_ overlay: TextOverlay, timings: [WordTiming], glyphsByWord: [[Int]],
+                                     at time: Double) -> [GlyphState] {
+        var states: [GlyphState] = []
         for (word, timing) in timings.enumerated() {
             let writeStart = max(timing.start - wordLead, overlay.startTime)
             let glyphs = glyphsByWord[word]
@@ -108,25 +145,67 @@ enum OutlineRenderer {
             for (order, glyph) in glyphs.enumerated() {
                 let progress = min(max(wordProgress * Double(glyphs.count) - Double(order), 0), 1)
                 guard progress > 0 else { break }
-                let path = Path(outline.glyphs[glyph]).applying(transform)
-
-                if overlay.drawsFill {
-                    let traced = writeStart + perGlyph * Double(order + 1)
-                    let fillOpacity = min(max((time - traced) / glyphFillFade, 0), 1)
-                    if fillOpacity > 0 {
-                        fill(path, alpha: opacity * fillOpacity, in: context)
-                    }
-                }
-                stroke(path.trimmedPath(from: 0, to: progress), of: overlay,
-                       lineWidth: overlay.strokeWidth(in: videoSize), in: context)
-                if progress < 1 {
-                    tips.append((path, CGFloat(progress)))
-                }
+                let traced = writeStart + perGlyph * Double(order + 1)
+                states.append(GlyphState(glyph: glyph, progress: progress,
+                                         fillOpacity: min(max((time - traced) / glyphFillFade, 0), 1)))
             }
         }
-        for tip in tips {
-            drawPointer(of: overlay, along: tip.path, progress: tip.progress, at: time, videoSize: videoSize, in: context)
+        return states
+    }
+
+    /// The pen moves at a steady speed through the whole text, measured by stroke
+    /// length. The schedule is planned word by word so the pen never jumps: a word
+    /// starts when it's spoken (or when the previous one is finished, if later),
+    /// and speeds up rather than fall more than `smoothMaxLag` behind the voice.
+    private static func smoothStates(_ overlay: TextOverlay, timings: [WordTiming], glyphsByWord: [[Int]],
+                                     at time: Double) -> [GlyphState] {
+        let lengths = overlay.outline.glyphLengths
+        let wordLengths = glyphsByWord.map { $0.reduce(0) { $0 + Double(lengths[$1]) } }
+        let total = wordLengths.reduce(0, +)
+        guard total > 0, let first = timings.first, let last = timings.last else { return [] }
+
+        let start = max(first.start - wordLead, overlay.startTime)
+        let fade = overlay.endTime ?? (last.end + 1)
+        var finish = max(last.end, min(last.end + smoothMaxLag, fade - 0.15))
+        if let writeBy = overlay.writeBy {
+            finish = max(min(finish, writeBy), start + 0.1)
         }
+        let speed = total / max(finish - start, 0.1)
+
+        // When each word's writing starts and ends
+        var windows: [(start: Double, end: Double)] = []
+        var penFree = start
+        for (index, timing) in timings.enumerated() {
+            let begin = max(penFree, timing.start - wordLead)
+            var deadline = timing.end + smoothMaxLag
+            if index == timings.count - 1 { deadline = min(deadline, finish) }
+            let end = max(min(begin + wordLengths[index] / speed, deadline), begin + wordDurationRange.lowerBound)
+            windows.append((begin, end))
+            penFree = end
+        }
+
+        // Each glyph takes its share of its word's window, by stroke length
+        var states: [GlyphState] = []
+        for (word, glyphs) in glyphsByWord.enumerated() where !glyphs.isEmpty {
+            let window = windows[word]
+            guard time > window.start else { break }
+            let duration = max(window.end - window.start, 0.001)
+            let wordProgress = min((time - window.start) / duration, 1)
+            let pen = wordProgress * wordLengths[word]
+            var before = 0.0
+            for glyph in glyphs {
+                let length = Double(lengths[glyph])
+                guard pen > before, length > 0 else { break }
+                let progress = min((pen - before) / length, 1)
+                // Fill by time from the moment the outline closes, so a word's last
+                // letter (where the pen stops) fills too
+                let traced = window.start + (before + length) / wordLengths[word] * duration
+                let fillOpacity = min(max((time - traced) / glyphFillFade, 0), 1)
+                states.append(GlyphState(glyph: glyph, progress: progress, fillOpacity: fillOpacity))
+                before += length
+            }
+        }
+        return states
     }
 
     private static func drawPointer(of overlay: TextOverlay, along path: Path, progress: CGFloat, at time: Double,

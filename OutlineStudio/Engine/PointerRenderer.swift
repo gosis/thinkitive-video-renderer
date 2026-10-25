@@ -14,7 +14,7 @@ enum PointerRenderer {
     /// Draws `style` where `path` has been traced to `progress` (0–1).
     static func draw(_ style: PenPointer, along path: Path, progress: CGFloat, time: Double,
                      color: CGColor, lineWidth: CGFloat, fontSize: CGFloat, in context: CGContext) {
-        guard style != .off, progress > 0, progress < 1,
+        guard style != .off, progress > 0, progress < 1 - CGFloat(OutlineRenderer.finishedTolerance),
               let tip = path.trimmedPath(from: 0, to: progress).currentPoint else { return }
 
         switch style {
@@ -76,7 +76,7 @@ enum PointerRenderer {
     /// A glowing tail along the last stretch of the stroke, brightest at the tip.
     private static func trail(of path: Path, to progress: CGFloat, length: CGFloat, color: CGColor,
                               lineWidth: CGFloat, in context: CGContext) {
-        let total = approximateLength(of: path)
+        let total = path.cgPath.approximateLength
         guard total > 0 else { return }
         let span = min(length / total, progress)
         let pieces = 8
@@ -147,23 +147,5 @@ enum PointerRenderer {
     private static func rgb(_ hex: UInt32) -> CGColor {
         CGColor(srgbRed: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255,
                 blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
-    }
-
-    /// Path length from its flattened segments; close enough to size the comet trail.
-    private static func approximateLength(of path: Path) -> CGFloat {
-        var total: CGFloat = 0
-        var current = CGPoint.zero
-        path.forEach { element in
-            switch element {
-            case .move(let to):
-                current = to
-            case .line(let to), .quadCurve(let to, _), .curve(let to, _, _):
-                total += hypot(to.x - current.x, to.y - current.y)
-                current = to
-            case .closeSubpath:
-                break
-            }
-        }
-        return total
     }
 }

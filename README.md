@@ -1,6 +1,6 @@
-# Outline
+# Inkcap
 
-Outline is an iOS video editor built around one effect: **text that draws itself on top of your footage, stroke by stroke, like a pen writing it**. Choose a *single-line* font and each letter is drawn as one pen line, like the handwriting animations in pro editing apps. Choose an *outline* font and the border of each letter is traced, then filled in solid. You place it on the video, set when it draws and how long it stays, and export a finished video to Photos.
+Inkcap is an iOS video editor built around one effect: **text that draws itself on top of your footage, stroke by stroke, like a pen writing it**. Choose a *single-line* font and each letter is drawn as one pen line, like the handwriting animations in pro editing apps. Choose an *outline* font and the border of each letter is traced, then filled in solid. You place it on the video, set when it draws and how long it stays, and export a finished video to Photos.
 
 Built with SwiftUI, AVFoundation and Core Text. No third-party dependencies.
 
@@ -8,15 +8,15 @@ Built with SwiftUI, AVFoundation and Core Text. No third-party dependencies.
 
 | | |
 |---|---|
-| **Bring in footage** | Pick a video from Photos, browse Files, or open the built-in sample: a 10-second portrait clip of NASA astronaut Christina Koch talking to camera, good for trying auto captions. |
+| **Bring in footage** | Pick a video from Photos, browse Files, or open the built-in sample: an 11-second portrait clip of NASA astronaut Christina Koch talking to camera, good for trying auto captions. |
 | **Add text** | Add as many text overlays as you like. Duplicate or delete the selected one. Text can have several lines. |
 | **Place it** | Drag text directly on the video preview. Tap to select it. |
-| **Style it** | 6 single-line fonts (Script, Cursive, Relief, Sans, Serif, Gothic) where every letter is one pen line, plus 12 system fonts whose outlines trace well. Set the size, line width and colour; outline fonts also get an optional fill. Any text can have a dark shadow edge and a rounded background box behind each line, in any colour and transparency. |
+| **Style it** | 15 single-line fonts (scripts like Script, Cursive, Allure and Felix; clean styles like Relief and Readable; character styles like Tech, Nixish and Osmotron) where every letter is one pen line, plus outline fonts whose borders are traced, including subtitle faces (TikTok Sans, Montserrat, Helvetica, Arial, Verdana, Atkinson Hyperlegible). The font picker groups them by use: Handwriting, Subtitles, Clean, Titles and Decorative. Set the size, line width and colour; outline fonts also get an optional fill. Any text can have a dark shadow edge and a rounded background box behind each line, in any colour and transparency. |
 | **Pen pointer** | Optionally show a marker riding on the point being drawn: a glowing dot, a twinkling spark, a comet with a glowing tail, or a little pencil. Off by default. |
 | **Choose how it draws** | *One by one*: glyphs are traced in reading order, like handwriting. *All at once*: every glyph is traced at the same time. |
 | **Time it** | Set the start time and draw duration, hold until the end or fade out at a chosen time, and pick an easing curve (Linear, Smooth, Ease out). |
 | **Preview** | Play, or drag anywhere on the timeline to scrub. Each text has its own lane, and the solid part of a lane shows the drawing phase. On iPhone, swipe down to close the keyboard. |
-| **Auto captions** | Tap the speech-bubble button and Outline transcribes the video's English speech on device, groups it into short captions on a new **Captions** layer, and writes each word as it's spoken. Edit a caption's text and timing, or restyle all captions at once. |
+| **Auto captions** | Tap the speech-bubble button and Inkcap transcribes the video's English speech on device, groups it into short captions on a new **Captions** layer, and writes each word as it's spoken. Edit a caption's text and timing, or restyle all captions at once. |
 | **Export** | Renders at the video's full resolution and saves to Photos, with a progress readout. |
 
 ## How the effect works
@@ -31,7 +31,7 @@ Built with SwiftUI, AVFoundation and Core Text. No third-party dependencies.
    - **Export:** `VideoExporter` builds an `AVMutableVideoComposition` with a Core Image handler. For every frame it draws the visible overlays into a transparent bitmap and composites that over the source frame. Source frames already have the track's orientation applied, so portrait footage stays upright.
 
    Because both paths call the same code, the export matches the preview.
-5. **Auto captions.** `SpeechCaptioner` copies the soundtrack to an `.m4a`, then transcribes it with iOS 26's on-device `SpeechAnalyzer`/`SpeechTranscriber`, which gives the time range of every word. Where that model isn't available (including the Simulator) it falls back to `SFSpeechRecognizer`. Word times are then tightened against the audio itself: `VoiceActivity` measures loudness in the voice band against the clip's own noise floor and trims each word to where it's actually voiced. `CaptionLayer` groups the words into captions at pauses, sentence ends and length limits, wraps or shrinks each one to fit the frame, and records each word's characters and timing (`WordTiming`). The renderer then traces each word's glyphs as that word is spoken, starting 60 ms early and taking at most 0.6 s per word, which reads as in sync; each caption is gone before the next one starts. Captions get a dark under-stroke so they stay readable on bright footage.
+5. **Auto captions.** `SpeechCaptioner` copies the soundtrack to an `.m4a`, then transcribes it with iOS 26's on-device `SpeechAnalyzer`/`SpeechTranscriber`, which gives the time range of every word. Where that model isn't available (including the Simulator) it falls back to `SFSpeechRecognizer`. Word times are then tightened against the audio itself: `VoiceActivity` measures loudness in the voice band against the clip's own noise floor and trims each word to where it's actually voiced. `CaptionLayer` groups the words into captions at pauses, sentence ends and length limits, wraps or shrinks each one to fit the frame, and records each word's characters and timing (`WordTiming`). Captions are written in one of two paces, chosen in the Timing tab: **Smooth pen** (default) moves the pen at a steady speed through the whole caption, measured by stroke length, never starting a word before it's spoken and never trailing it by more than 0.5 s; **Synced to speech** writes each word in the moment it's spoken. A caption fades only after its last word, and the next one waits until it's gone. Captions get a dark under-stroke so they stay readable on bright footage.
 
 ## Project layout
 
@@ -95,7 +95,7 @@ Run the UI tests with ⌘U. The launch argument `-useSampleClip` opens the edito
 
 ## Fonts
 
-The single-line fonts are the Hershey fonts (Dr. A. V. Hershey, U.S. National Bureau of Standards; free to use with attribution) plus Relief SingleLine and a cursive script, both under the SIL Open Font License. Full notices are in `OutlineStudio/Fonts/LICENSES.md`.
+The single-line fonts are the Hershey fonts (Dr. A. V. Hershey, U.S. National Bureau of Standards; free to use with attribution), the EMS fonts by Sheldon B. Michaels, Relief SingleLine and a cursive script, the last three under the SIL Open Font License. The EMS fonts also cover accented Latin letters. Full notices are in `OutlineStudio/Fonts/LICENSES.md`.
 
 ## History
 

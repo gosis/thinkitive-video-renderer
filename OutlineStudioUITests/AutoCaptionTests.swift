@@ -23,20 +23,23 @@ final class AutoCaptionTests: XCTestCase {
             return true
         }
 
+        // The sample opens already captioned; regenerating must transcribe it again
         app.buttons["Auto captions"].tap()
+        let listening = app.staticTexts["Listening for speech…"]
+        XCTAssertTrue(listening.waitForExistence(timeout: 5), "Captioning didn't start")
         // Interruption monitors only run on the next interaction; tap somewhere inert
-        sleep(3)
-        app.staticTexts["Outline"].firstMatch.tap()
+        app.staticTexts["Inkcap"].firstMatch.tap()
+
+        let finished = NSPredicate(format: "exists == false")
+        expectation(for: finished, evaluatedWith: listening)
+        waitForExpectations(timeout: 180)
 
         let failure = app.alerts["Something went wrong"]
-
-        // The first run may download the speech model
-        let caption = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Caption '")).firstMatch
-        let appeared = caption.waitForExistence(timeout: 180)
         if failure.exists {
             XCTFail("Captioning failed: \(failure.staticTexts.allElementsBoundByIndex.map(\.label))")
         }
-        XCTAssertTrue(appeared, "No captions were created")
+        let caption = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Caption '")).firstMatch
+        XCTAssertTrue(caption.waitForExistence(timeout: 5), "No captions after regenerating")
 
         let captions = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Caption '"))
         let labels = captions.allElementsBoundByIndex.map(\.label)

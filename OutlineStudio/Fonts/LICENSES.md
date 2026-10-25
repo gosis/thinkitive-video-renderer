@@ -1,12 +1,24 @@
-# Bundled single-line fonts
+# Bundled fonts
 
-These fonts store each letter as the centre line a pen would follow, so letters can be drawn with a single stroke.
+The single-line fonts store each letter as the centre line a pen would follow, so letters can be drawn with a single stroke. The subtitle fonts are regular outline fonts.
+
+## Subtitle fonts — TikTokSans16pt-Bold.ttf, Montserrat-ExtraBold.ttf, AtkinsonHyperlegible-Bold.ttf
+
+- TikTok Sans: Copyright 2024 TikTok Inc. (https://github.com/tiktok/TikTokSans)
+- Montserrat: Copyright 2024 The Montserrat.Git Project Authors (https://github.com/JulietaUla/Montserrat)
+- Atkinson Hyperlegible: Copyright 2020 Braille Institute of America, Inc. (https://github.com/googlefonts/atkinson-hyperlegible)
+
+All three are licensed under the SIL Open Font License 1.1 (below).
 
 ## Hershey fonts — HersheyScript.svg, HersheySans.svg, HersheySerif.svg, HersheyGothic.svg
 
 The Hershey Fonts were originally created by Dr. A. V. Hershey while working at the U. S. National Bureau of Standards. The format of the font data in this distribution was originally created by James Hurt, Cognition, Inc., 900 Technology Park Drive, Billerica, MA 01821.
 
 Use of the Hershey fonts is unrestricted provided this attribution is kept. SVG conversion via Inkscape's Hershey Text extension (Windell H. Oskay, Evil Mad Scientist Laboratories) and https://github.com/Shriinivas/inkscapestrokefont.
+
+## EMS fonts — EMSAllure.svg, EMSElfin.svg, EMSFelix.svg, EMSNixish.svg, EMSNixishItalic.svg, EMSOsmotron.svg, EMSReadability.svg, EMSReadabilityItalic.svg, EMSTech.svg
+
+EMS Allure, EMS Elfin, EMS Felix, EMS Nixish, EMS Nixish Italic, EMS Osmotron, EMS Readability, EMS Readability Italic and EMS Tech were created by Sheldon B. Michaels and are licensed under the SIL Open Font License 1.1 (below). SVG font files from Inkscape's Hershey Text extension (https://gitlab.com/inkscape/extensions/-/tree/master/svg_fonts).
 
 ## Cursive script — CursiveScript.svg
 

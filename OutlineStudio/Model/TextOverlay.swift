@@ -62,6 +62,29 @@ struct TextOverlay: Identifiable, Equatable {
     /// When set, each word is written while it's spoken instead of the whole text
     /// being traced over `drawDuration`. Used by auto captions.
     var wordTimings: [WordTiming]?
+    /// How word-timed text is written.
+    var writingPace = WritingPace.smooth
+    /// Word-timed text is completely written by this time, so the last words of a
+    /// video finish before it ends.
+    var writeBy: Double?
+}
+
+/// How text with word timings is written.
+enum WritingPace: String, CaseIterable, Identifiable {
+    /// Each word is written in the moment it's spoken.
+    case synced
+    /// The pen moves steadily through the whole caption, never ahead of the
+    /// speech and never far behind it.
+    case smooth
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .synced: "Synced to speech"
+        case .smooth: "Smooth pen"
+        }
+    }
 }
 
 /// The span of `TextOverlay.text` (in characters) that is written between two times.

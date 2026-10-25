@@ -7,8 +7,8 @@ import SwiftUI
 
 /// Ruler plus one lane per overlay showing when it is on screen.
 ///
-/// Dragging anywhere on the strip moves the playhead; tapping the ruler jumps to
-/// that time and tapping a clip selects its text.
+/// Tapping or dragging anywhere on the strip moves the playhead; tapping a block
+/// also selects its text or caption.
 struct TimelineStrip: View {
     @Bindable var model: EditorModel
 
@@ -33,10 +33,15 @@ struct TimelineStrip: View {
                 playhead(at: x(for: model.currentTime, width: width))
             }
             .contentShape(Rectangle())
-            // Clip taps win over this; any real drag scrubs
+            // A finger wobbles a few points while tapping; only a deliberate drag scrubs
             .gesture(
-                DragGesture(minimumDistance: 4)
+                DragGesture(minimumDistance: 10)
                     .onChanged { value in scrub(toX: value.location.x, width: width) }
+            )
+            // A tap anywhere moves the playhead there, alongside selecting a tapped block
+            .simultaneousGesture(
+                SpatialTapGesture()
+                    .onEnded { value in scrub(toX: value.location.x, width: width) }
             )
         }
         .frame(height: rulerHeight + rulerSpacing + lanesHeight)
@@ -142,9 +147,11 @@ struct TimelineStrip: View {
         ZStack(alignment: .leading) {
             Rectangle().fill(Theme.surfaceRaised.opacity(0.5))
 
-            ForEach(layer.captions) { caption in
-                let start = x(for: caption.start, width: width)
-                let end = x(for: min(caption.end + CaptionLayer.hold, model.duration), width: width)
+            // Each block spans exactly when its caption is on screen, so blocks never overlap
+            ForEach(Array(zip(layer.captions, model.captionOverlays)), id: \.0.id) { caption, overlay in
+                let start = x(for: overlay.startTime, width: width)
+                let shown = (overlay.endTime ?? model.duration) + TextOverlay.fadeOutDuration
+                let end = x(for: min(shown, model.duration), width: width)
                 let isSelected = caption.id == model.selectedCaptionID
 
                 RoundedRectangle(cornerRadius: 5)
@@ -152,12 +159,13 @@ struct TimelineStrip: View {
                     .overlay(RoundedRectangle(cornerRadius: 5)
                         .strokeBorder(isSelected ? Theme.onAccent.opacity(0.9) : .clear, lineWidth: 1.5))
                     .frame(width: max(end - start - 2, 6))
-                    .offset(x: start)
                     .contentShape(Rectangle())
-                    .onTapGesture { model.selectCaption(caption.id) }
+                    .highPriorityGesture(TapGesture().onEnded { model.selectCaption(caption.id) })
                     .accessibilityElement()
                     .accessibilityLabel("Caption \(caption.text)")
                     .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+                    // Padding rather than an offset, so the tap area sits where the block is drawn
+                    .padding(.leading, start)
             }
         }
         .frame(height: laneHeight)
@@ -190,12 +198,12 @@ struct TimelineStrip: View {
                 }
             }
             .frame(width: max(end - start, 12))
-            .offset(x: start)
+            .padding(.leading, start)
         }
         .frame(height: laneHeight)
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .contentShape(Rectangle())
-        .onTapGesture { model.selectedID = overlay.id }
+        .highPriorityGesture(TapGesture().onEnded { model.selectedID = overlay.id })
         .accessibilityElement()
         .accessibilityLabel("Text \(overlay.text)")
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
