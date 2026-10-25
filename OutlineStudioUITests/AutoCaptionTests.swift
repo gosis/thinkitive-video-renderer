@@ -33,7 +33,7 @@ final class AutoCaptionTests: XCTestCase {
         expectation(for: started, evaluatedWith: nil)
         waitForExpectations(timeout: 5)
         // Interruption monitors only run on the next interaction; tap somewhere inert
-        app.staticTexts["Inkcap"].firstMatch.tap()
+        app.staticTexts["Astronaut sample"].firstMatch.tap()
 
         let finished = NSPredicate(format: "exists == false")
         expectation(for: finished, evaluatedWith: listening)

@@ -27,14 +27,18 @@ final class StrokeFont {
     /// time it's asked for; this is safe to call from the export thread.
     static func named(_ resource: String) -> StrokeFont? {
         lock.lock()
-        defer { lock.unlock() }
-        if let cached = loaded[resource] {
-            return cached
-        }
+        let cached = loaded[resource]
+        lock.unlock()
+        if let cached { return cached }
+
         guard OutlineFont.named(resource)?.kind == .singleLine,
               let url = Bundle.main.url(forResource: resource, withExtension: "svg") else { return nil }
+        // Parse outside the lock so drawing never waits behind another font's parse;
+        // two threads may occasionally parse the same font, which is harmless
         let font = StrokeFont(contentsOf: url)
-        loaded[resource] = font
+        lock.lock()
+        loaded[resource] = .some(font)
+        lock.unlock()
         return font
     }
 
@@ -54,10 +58,10 @@ final class StrokeFont {
         parser.delegate = reader
         guard parser.parse(), !reader.glyphs.isEmpty else { return nil }
 
-        glyphs = reader.glyphs
         defaultAdvance = reader.defaultAdvance
         let measured = ["H", "E", "I"].compactMap { reader.glyphs[$0]?.path.boundingBoxOfPath.maxY }.max()
         capHeight = measured ?? reader.unitsPerEm * 0.7
+        glyphs = AccentComposer.addingAccentedLetters(to: reader.glyphs, capHeight: capHeight)
     }
 }
 

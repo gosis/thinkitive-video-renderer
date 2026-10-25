@@ -13,6 +13,7 @@ struct EmptyStateView: View {
     let choosePhoto: () -> Void
     let browseFiles: () -> Void
     let useSample: () -> Void
+    let newBlank: () -> Void
 
     var body: some View {
         VStack(spacing: 28) {
@@ -41,6 +42,7 @@ struct EmptyStateView: View {
                 }
                 .buttonStyle(.glassProminent)
                 .tint(Theme.accent)
+                secondaryButton("New blank video", symbol: "rectangle.badge.plus", action: newBlank)
                 HStack(spacing: 10) {
                     secondaryButton("Browse Files", symbol: "folder", action: browseFiles)
                     secondaryButton("Sample clip", symbol: "sparkles.tv", action: useSample)
@@ -55,14 +57,7 @@ struct EmptyStateView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .overlay {
-            if isLoading {
-                ProgressView()
-                    .controlSize(.large)
-                    .padding(24)
-                    .glassPanel()
-            }
-        }
+
     }
 
     private var demo: some View {
@@ -109,6 +104,22 @@ struct AmbientGlow: View {
     var intensity = 1.0
     var showsLoops = true
     @Environment(\.colorScheme) private var colorScheme
+
+    /// Seconds for one loop to write itself and be wiped away.
+    private static let loopCycle = 4.5
+
+    /// The visible part of a looping stroke at `phase` (in cycles): it draws in over
+    /// the first part of the cycle, holds, then erases from its start.
+    private static func writeOnWindow(at phase: Double) -> (from: CGFloat, to: CGFloat) {
+        let t = phase - phase.rounded(.down)
+        func ease(_ x: Double) -> CGFloat { CGFloat(x * x * (3 - 2 * x)) }
+        switch t {
+        case ..<0.42: return (0, ease(t / 0.42))
+        case ..<0.55: return (0, 1)
+        case ..<0.95: return (ease((t - 0.55) / 0.4), 1)
+        default: return (1, 1)
+        }
+    }
 
     private struct Light {
         let color: Color
@@ -157,7 +168,12 @@ struct AmbientGlow: View {
                     loop.addCurve(to: CGPoint(x: size.width + 40, y: y - 20 - drift),
                                   control1: CGPoint(x: size.width * 0.55, y: y - 30),
                                   control2: CGPoint(x: size.width * 0.8, y: y + 20))
-                    context.stroke(loop, with: .color(ink), style: StrokeStyle(lineWidth: 14, lineCap: .round))
+                    // Writes itself left to right, then is wiped away from the left, on a
+                    // loop; the two loops run half a cycle apart
+                    let (from, to) = Self.writeOnWindow(at: time / Self.loopCycle + Double(index) * 0.5)
+                    guard to > from else { continue }
+                    context.stroke(loop.trimmedPath(from: from, to: to), with: .color(ink),
+                                   style: StrokeStyle(lineWidth: 14, lineCap: .round))
                 }
             }
         }

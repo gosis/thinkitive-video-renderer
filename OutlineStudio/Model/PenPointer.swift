@@ -4,7 +4,7 @@
 //
 
 /// A marker that rides on the point currently being drawn, like a pen tip.
-enum PenPointer: String, CaseIterable, Identifiable {
+enum PenPointer: String, CaseIterable, Identifiable, Codable {
     case off, dot, spark, comet, pencil
 
     var id: Self { self }

@@ -11,7 +11,12 @@ import CoreGraphics
 /// render size in pixels; both get the same layout.
 extension TextOverlay {
     var outline: GlyphOutline {
-        GlyphOutline.make(text: text, fontName: fontName)
+        guard let aspect = wrapAspectRatio, relativeSize > 0 else {
+            return GlyphOutline.make(text: text, fontName: fontName)
+        }
+        // 90% of the video width, in the outline's reference units
+        let maxWidth = 0.9 * aspect * GlyphOutline.referenceSize / relativeSize
+        return GlyphOutline.make(text: text, fontName: fontName, maxWidth: maxWidth)
     }
 
     var font: OutlineFont {

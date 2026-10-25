@@ -12,8 +12,11 @@ struct EditorView: View {
     @State private var pickerItem: PhotosPickerItem?
     @State private var showPhotoPicker = false
     @State private var showFileImporter = false
+    @State private var showNewComposition = false
+    @State private var pickedImage: PickedImage?
     @AppStorage(AppearancePreference.storageKey) private var appearance: AppearancePreference = .system
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @Environment(\.scenePhase) private var scenePhase
     @State private var isKeyboardVisible = false
     @State private var layoutHeight: CGFloat = 0
     @State private var editorScroll = ScrollPosition(edge: .top)
@@ -23,11 +26,20 @@ struct EditorView: View {
             topBar
             if model.hasVideo {
                 editor
-            } else {
+            } else if model.store.projects.isEmpty {
                 EmptyStateView(isLoading: model.isLoading,
                                choosePhoto: { showPhotoPicker = true },
                                browseFiles: { showFileImporter = true },
-                               useSample: { Task { await model.loadSampleClip() } })
+                               useSample: { Task { await model.loadSampleClip() } },
+                               newBlank: { showNewComposition = true })
+            } else {
+                LibraryView(store: model.store,
+                            isLoading: model.isLoading,
+                            open: { project in Task { await model.openProject(project) } },
+                            choosePhoto: { showPhotoPicker = true },
+                            browseFiles: { showFileImporter = true },
+                            useSample: { Task { await model.loadSampleClip() } },
+                            newBlank: { showNewComposition = true })
             }
         }
         .background {
@@ -39,8 +51,8 @@ struct EditorView: View {
             }
             .ignoresSafeArea()
         }
-        .photosPicker(isPresented: $showPhotoPicker, selection: $pickerItem, matching: .videos)
-        .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.movie]) { result in
+        .photosPicker(isPresented: $showPhotoPicker, selection: $pickerItem, matching: .any(of: [.videos, .images]))
+        .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.movie, .image]) { result in
             importFile(result)
         }
         .task {
@@ -58,7 +70,11 @@ struct EditorView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
             isKeyboardVisible = false
         }
+        .onChange(of: showPhotoPicker) { _, shown in
+            Log.app.notice("Photo picker \(shown ? "shown" : "dismissed", privacy: .public)")
+        }
         .onChange(of: pickerItem) { _, item in
+            Log.app.notice("Photo picked: \(item != nil, privacy: .public)")
             guard let item else { return }
             Task {
                 await importPhoto(item)
@@ -72,10 +88,32 @@ struct EditorView: View {
             } else if model.isCaptioning {
                 captioningStatus
                     .transition(.opacity)
+            } else if model.isLoading {
+                // Informational only: it must not swallow taps while it fades out
+                loadingStatus
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
             }
         }
         .animation(.easeOut(duration: 0.2), value: model.exportState)
         .animation(.easeOut(duration: 0.2), value: model.isCaptioning)
+        .animation(.easeOut(duration: 0.2), value: model.isLoading)
+        // Every edit is saved shortly after it's made, and at once when leaving the app
+        .onChange(of: model.overlays) { model.scheduleSave() }
+        .onChange(of: model.captionLayer) { model.scheduleSave() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { model.saveProject() }
+        }
+        .sheet(isPresented: $showNewComposition) {
+            NewCompositionSheet { duration, shape in
+                Task { await model.newComposition(duration: duration, size: shape.size) }
+            }
+        }
+        .sheet(item: $pickedImage) { picked in
+            NewCompositionSheet(image: picked.image) { duration, _ in
+                Task { await model.newComposition(fromImage: picked.image, duration: duration) }
+            }
+        }
         .alert("Something went wrong",
                isPresented: Binding(get: { model.alertMessage != nil }, set: { if !$0 { model.alertMessage = nil } })) {
             Button("OK", role: .cancel) {}
@@ -88,15 +126,20 @@ struct EditorView: View {
 
     private var topBar: some View {
         HStack(spacing: 10) {
-            // The start screen writes the name large, so the logo only shows in the editor
+            // Home screens show the name large, so the bar only carries it in the editor
             if model.hasVideo {
-                HStack(spacing: 6) {
-                    InkcapMark()
-                        .frame(width: 26, height: 26)
-                    Text("Inkcap")
-                        .foregroundStyle(Theme.textPrimary)
+                Button {
+                    model.closeProject()
+                } label: {
+                    toolbarIcon("chevron.left")
                 }
-                .font(.title3.weight(.bold))
+                .buttonStyle(.plain)
+                .accessibilityLabel("Library")
+
+                Text(model.project?.name ?? "Inkcap")
+                    .font(.headline)
+                    .foregroundStyle(Theme.textPrimary)
+                    .lineLimit(1)
             }
 
             Spacer()
@@ -117,10 +160,11 @@ struct EditorView: View {
                     Button("Choose from Photos", systemImage: "photo.on.rectangle") { showPhotoPicker = true }
                     Button("Browse Files", systemImage: "folder") { showFileImporter = true }
                     Button("Sample clip", systemImage: "sparkles.tv") { Task { await model.loadSampleClip() } }
+                    Button("New blank video", systemImage: "rectangle.badge.plus") { showNewComposition = true }
                 } label: {
                     toolbarIcon("film.stack")
                 }
-                .accessibilityLabel("Replace video")
+                .accessibilityLabel("New video")
 
                 Button {
                     Task { await model.export() }
@@ -261,14 +305,14 @@ struct EditorView: View {
     /// iPad: the inspector lives in a full-height glass sidebar beside the video.
     private var sidebar: some View {
         ScrollView {
-            if let index = model.selectedIndex {
-                InspectorPanel(overlay: $model.overlays[index], duration: model.duration,
-                               hasGlassBackground: false)
-                    .id(model.overlays[index].id)
+            if let id = model.selectedID, model.selectedIndex != nil {
+                InspectorPanel(overlay: model.overlayBinding(for: id), duration: model.duration,
+                               layout: .sidebar)
+                    .id(id)
                     .transition(.opacity)
             } else if let id = model.selectedCaptionID, model.selectedCaptionIndex != nil {
                 InspectorPanel(overlay: model.captionBinding(for: id), duration: model.duration,
-                               isCaption: true, hasGlassBackground: false)
+                               isCaption: true, layout: .sidebar)
                     .id(id)
                     .transition(.opacity)
             }
@@ -298,9 +342,9 @@ struct EditorView: View {
 
     @ViewBuilder
     private var inspector: some View {
-        if let index = model.selectedIndex {
-            InspectorPanel(overlay: $model.overlays[index], duration: model.duration)
-                .id(model.overlays[index].id)
+        if let id = model.selectedID, model.selectedIndex != nil {
+            InspectorPanel(overlay: model.overlayBinding(for: id), duration: model.duration)
+                .id(id)
                 .transition(Self.inspectorTransition)
         } else if let id = model.selectedCaptionID, model.selectedCaptionIndex != nil {
             InspectorPanel(overlay: model.captionBinding(for: id), duration: model.duration, isCaption: true)
@@ -332,6 +376,21 @@ struct EditorView: View {
         insertion: .move(edge: .bottom).combined(with: .opacity),
         removal: .opacity)
 
+    private var loadingStatus: some View {
+        ZStack {
+            Color.black.opacity(0.2).ignoresSafeArea()
+            VStack(spacing: 14) {
+                ProgressView()
+                    .controlSize(.large)
+                Text("Opening video…")
+                    .font(.headline)
+                    .foregroundStyle(Theme.textPrimary)
+            }
+            .padding(28)
+            .glassPanel(cornerRadius: 28)
+        }
+    }
+
     private var captioningStatus: some View {
         ZStack {
             Color.black.opacity(0.25).ignoresSafeArea()
@@ -354,10 +413,31 @@ struct EditorView: View {
     // MARK: Import
 
     private func importPhoto(_ item: PhotosPickerItem) async {
+        // Copying a video out of Photos can take a while; show the loader meanwhile
+        model.isLoading = true
+        defer { model.isLoading = false }
+        Log.app.notice("Importing from Photos: \(item.supportedContentTypes.map(\.identifier), privacy: .public)")
         do {
-            guard let movie = try await item.loadTransferable(type: PickedMovie.self) else { return }
-            await model.loadVideo(from: movie.url)
+            // A photo becomes a still video, so ask how long it should last first
+            if !item.supportedContentTypes.contains(where: { $0.conforms(to: .movie) }) {
+                guard let data = try await item.loadTransferable(type: Data.self),
+                      let image = UIImage(data: data) else {
+                    model.alertMessage = "That photo couldn't be opened from Photos."
+                    return
+                }
+                pickedImage = PickedImage(image: image)
+                return
+            }
+            guard let movie = try await item.loadTransferable(type: PickedMovie.self) else {
+                Log.app.error("Photos returned no movie for the picked item")
+                model.alertMessage = "That video couldn't be opened from Photos."
+                return
+            }
+            Log.app.notice("Copied from Photos to \(movie.url.lastPathComponent, privacy: .public)")
+            await model.importVideo(from: movie.url)
+            try? FileManager.default.removeItem(at: movie.url)
         } catch {
+            Log.app.error("Photos import failed: \(error.localizedDescription, privacy: .public)")
             model.alertMessage = error.localizedDescription
         }
     }
@@ -368,13 +448,31 @@ struct EditorView: View {
             let accessing = source.startAccessingSecurityScopedResource()
             defer { if accessing { source.stopAccessingSecurityScopedResource() } }
 
+            if UTType(filenameExtension: source.pathExtension)?.conforms(to: .image) == true {
+                guard let image = UIImage(contentsOfFile: source.path) else {
+                    model.alertMessage = "That image couldn't be opened."
+                    return
+                }
+                pickedImage = PickedImage(image: image)
+                return
+            }
+
             let destination = PickedMovie.temporaryURL(extension: source.pathExtension)
             try FileManager.default.copyItem(at: source, to: destination)
-            Task { await model.loadVideo(from: destination) }
+            Task {
+                await model.importVideo(from: destination)
+                try? FileManager.default.removeItem(at: destination)
+            }
         } catch {
             model.alertMessage = error.localizedDescription
         }
     }
+}
+
+/// A picked photo waiting for the user to choose how long its video should be.
+struct PickedImage: Identifiable {
+    let id = UUID()
+    let image: UIImage
 }
 
 /// A movie copied out of the photo library into the app's temporary directory.

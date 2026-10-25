@@ -87,6 +87,7 @@ struct OutlineFont: Identifiable, Hashable {
     /// doesn't have are left out.
     static let all: [OutlineFont] = [
         line("HersheyScript", "Script", .handwriting),
+        line("HersheyScriptMedium", "Script Bold", .handwriting),
         line("CursiveScript", "Cursive", .handwriting),
         line("EMSAllure", "Allure", .handwriting),
         line("EMSFelix", "Felix", .handwriting),
@@ -95,6 +96,7 @@ struct OutlineFont: Identifiable, Hashable {
         outline("BradleyHandITCTT-Bold", "Hand", .handwriting),
         outline("Noteworthy-Bold", "Note", .handwriting),
 
+        line("HersheySansBold", "Sans Bold", .subtitles),
         outline("TikTokSans16pt-Bold", "TikTok Sans", .subtitles),
         outline("Montserrat-ExtraBold", "Montserrat", .subtitles),
         outline("HelveticaNeue-Bold", "Helvetica", .subtitles),
@@ -114,11 +116,14 @@ struct OutlineFont: Identifiable, Hashable {
         outline("Georgia-BoldItalic", "Georgia", .titles),
         outline("Copperplate-Bold", "Plate", .titles),
         outline("AmericanTypewriter-Bold", "Typewriter", .titles),
+        line("HersheySerifBold", "Serif Bold", .titles),
+        line("HersheySerifBoldItalic", "Serif Bold It.", .titles),
         line("HersheySerif", "Serif", .titles),
         line("EMSNixish", "Nixish", .titles),
         line("EMSNixishItalic", "Nixish It.", .titles),
 
         line("HersheyGothic", "Gothic", .decorative),
+        line("HersheyGothicItalian", "Gothic Round", .decorative),
         line("EMSOsmotron", "Osmotron", .decorative),
         outline("Zapfino", "Zapfino", .decorative),
         outline("MarkerFelt-Wide", "Marker", .decorative),

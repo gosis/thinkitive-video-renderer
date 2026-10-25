@@ -10,7 +10,7 @@ The single-line fonts store each letter as the centre line a pen would follow, s
 
 All three are licensed under the SIL Open Font License 1.1 (below).
 
-## Hershey fonts — HersheyScript.svg, HersheySans.svg, HersheySerif.svg, HersheyGothic.svg
+## Hershey fonts — HersheyScript.svg, HersheyScriptMedium.svg, HersheySans.svg, HersheySansBold.svg, HersheySerif.svg, HersheySerifBold.svg, HersheySerifBoldItalic.svg, HersheyGothic.svg, HersheyGothicItalian.svg
 
 The Hershey Fonts were originally created by Dr. A. V. Hershey while working at the U. S. National Bureau of Standards. The format of the font data in this distribution was originally created by James Hurt, Cognition, Inc., 900 Technology Park Drive, Billerica, MA 01821.
 

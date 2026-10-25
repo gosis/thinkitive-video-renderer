@@ -91,7 +91,11 @@ enum VideoExporter {
             throw ExportError.photoAccessDenied
         }
         try await PHPhotoLibrary.shared().performChanges {
-            PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+            let request = PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+            // Otherwise it inherits the source clip's recording date and Photos files it
+            // back beside the original instead of with the newest items
+            request?.creationDate = .now
         }
+        Log.app.notice("Saved export to Photos")
     }
 }

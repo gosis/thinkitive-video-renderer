@@ -7,14 +7,14 @@ import CoreGraphics
 import Foundation
 
 /// A spoken word and when it is said, in seconds into the video.
-struct CaptionWord: Equatable {
+struct CaptionWord: Equatable, Codable {
     var text: String
     var start: Double
     var end: Double
 }
 
 /// One on-screen caption: a short phrase whose words write themselves as they're spoken.
-struct Caption: Identifiable, Equatable {
+struct Caption: Identifiable, Equatable, Codable {
     var id = UUID()
     var words: [CaptionWord]
 
@@ -49,7 +49,7 @@ struct Caption: Identifiable, Equatable {
 }
 
 /// Auto-generated captions sharing one style.
-struct CaptionLayer: Equatable {
+struct CaptionLayer: Equatable, Codable {
     /// Font, colour, size and position for every caption; its text and timing are unused.
     var style: TextOverlay
     var captions: [Caption]

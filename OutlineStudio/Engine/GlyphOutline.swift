@@ -33,15 +33,51 @@ final class GlyphOutline {
 
     private static let cache = NSCache<NSString, GlyphOutline>()
 
-    static func make(text: String, fontName: String) -> GlyphOutline {
-        let key = "\(fontName)|\(text)" as NSString
+    /// - Parameter maxWidth: When set, lines longer than this (in reference units)
+    ///   wrap at spaces. Each break replaces a space, so character indices stay put.
+    static func make(text: String, fontName: String, maxWidth: CGFloat? = nil) -> GlyphOutline {
+        let key = "\(fontName)|\(maxWidth.map { Int($0) } ?? 0)|\(text)" as NSString
         if let cached = cache.object(forKey: key) {
             return cached
         }
-        let outline = StrokeFont.named(fontName).map { GlyphOutline(text: text, strokeFont: $0) }
-            ?? GlyphOutline(text: text, fontName: fontName)
+        let laidOut = maxWidth.map { wrapped(text, fontName: fontName, maxWidth: $0) } ?? text
+        let outline = StrokeFont.named(fontName).map { GlyphOutline(text: laidOut, strokeFont: $0) }
+            ?? GlyphOutline(text: laidOut, fontName: fontName)
         cache.setObject(outline, forKey: key)
         return outline
+    }
+
+    /// Breaks each paragraph onto new lines at spaces so no line exceeds `maxWidth`.
+    /// A single word wider than that stays on its own line.
+    static func wrapped(_ text: String, fontName: String, maxWidth: CGFloat) -> String {
+        text.split(separator: "\n", omittingEmptySubsequences: false).map { paragraph in
+            var lines: [String] = []
+            var current = ""
+            for word in paragraph.split(separator: " ", omittingEmptySubsequences: false) {
+                let candidate = current.isEmpty ? String(word) : current + " " + word
+                if !current.isEmpty, width(of: candidate, fontName: fontName) > maxWidth {
+                    lines.append(current)
+                    current = String(word)
+                } else {
+                    current = candidate
+                }
+            }
+            lines.append(current)
+            return lines.joined(separator: "\n")
+        }
+        .joined(separator: "\n")
+    }
+
+    /// Width of one line at the reference size, laid out as `init` would.
+    private static func width(of line: String, fontName: String) -> CGFloat {
+        if let strokeFont = StrokeFont.named(fontName) {
+            let scale = referenceSize * 0.7 / strokeFont.capHeight
+            return line.reduce(0) { $0 + (strokeFont.glyphs[$1]?.advance ?? strokeFont.defaultAdvance) } * scale
+        }
+        let font = CTFontCreateWithName(fontName as CFString, referenceSize, nil)
+        let attributed = NSAttributedString(string: line,
+                                            attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font])
+        return CGFloat(CTLineGetTypographicBounds(CTLineCreateWithAttributedString(attributed), nil, nil, nil))
     }
 
     private convenience init(text: String, fontName: String) {

@@ -23,7 +23,7 @@ final class EditorModel {
     private(set) var duration: Double = 0
     private(set) var currentTime: Double = 0
     private(set) var isPlaying = false
-    private(set) var isLoading = false
+    var isLoading = false
 
     var overlays: [TextOverlay] = []
     var captionLayer: CaptionLayer?
@@ -40,11 +40,16 @@ final class EditorModel {
     var alertMessage: String?
 
     @ObservationIgnored let player = AVPlayer()
+    @ObservationIgnored private let fontsReady: Task<Void, Never>
+    @ObservationIgnored private var saveTask: Task<Void, Never>?
+    let store = ProjectStore()
+    /// The project being edited; nil in the library.
+    private(set) var project: Project?
     @ObservationIgnored private var endObserver: NSObjectProtocol?
 
     init() {
-        // Font parsing takes a moment; do it before anyone opens the font picker
-        Task.detached(priority: .utility) { StrokeFont.preloadAll() }
+        // Font parsing takes a moment; do it off the main thread before anyone needs it
+        fontsReady = Task.detached(priority: .userInitiated) { StrokeFont.preloadAll() }
 
         player.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 60), queue: .main) { [weak self] time in
             MainActor.assumeIsolated {
@@ -79,17 +84,138 @@ final class EditorModel {
 
     // MARK: Media
 
+    // MARK: Projects
+
+    /// Starts a project from a video, e.g. one picked from Photos or Files.
+    func importVideo(from url: URL) async {
+        let name = "Video " + Date.now.formatted(date: .abbreviated, time: .shortened)
+        await startProject(fromVideoAt: url, name: name)
+    }
+
     func loadSampleClip() async {
         guard let url = SampleClip.url else {
             alertMessage = "The sample clip is missing from the app."
             return
         }
-        await loadVideo(from: url)
-        guard videoURL == url else { return }
+        guard await startProject(fromVideoAt: url, name: "Astronaut sample") else { return }
         // Only the transcribed speech, no placeholder text
         overlays = []
         selectedID = nil
         captionLayer = SampleClip.captionLayer
+        saveProject()
+    }
+
+    /// Starts from a black video of `duration` seconds at `size`.
+    func newComposition(duration: Double, size: CGSize) async {
+        isLoading = true
+        do {
+            let url = try await BlankClip.make(duration: duration, size: size)
+            defer { try? FileManager.default.removeItem(at: url) }
+            await startProject(fromVideoAt: url, name: "Blank video \(Int(duration))s")
+        } catch {
+            isLoading = false
+            alertMessage = error.localizedDescription
+        }
+    }
+
+    /// Starts from a photo held still for `duration` seconds, at the photo's own shape.
+    func newComposition(fromImage image: UIImage, duration: Double) async {
+        isLoading = true
+        do {
+            let size = BlankClip.size(forImageOfSize: CGSize(width: image.size.width * image.scale,
+                                                             height: image.size.height * image.scale))
+            // Redraw so the pixels are upright (photos often carry an orientation flag) and sized
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1
+            let upright = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+                image.draw(in: CGRect(origin: .zero, size: size))
+            }
+            let url = try await BlankClip.make(duration: duration, size: size, image: upright.cgImage)
+            defer { try? FileManager.default.removeItem(at: url) }
+            let name = "Photo " + Date.now.formatted(date: .abbreviated, time: .shortened)
+            await startProject(fromVideoAt: url, name: name)
+        } catch {
+            isLoading = false
+            alertMessage = error.localizedDescription
+        }
+    }
+
+    /// Copies the video into a new saved project and opens it.
+    @discardableResult
+    private func startProject(fromVideoAt url: URL, name: String) async -> Bool {
+        isLoading = true
+        saveProject()
+        do {
+            let created = try await store.create(videoAt: url, name: name)
+            // Fonts load in the background; wait here rather than stall the first draw
+            await fontsReady.value
+            overlays = []
+            await loadVideo(from: store.videoURL(for: created))
+            guard videoURL == store.videoURL(for: created) else {
+                store.delete(created)
+                return false
+            }
+            project = created
+            saveProject()
+            return true
+        } catch {
+            isLoading = false
+            alertMessage = error.localizedDescription
+            return false
+        }
+    }
+
+    /// Reopens a saved project exactly as it was left.
+    func openProject(_ saved: Project) async {
+        isLoading = true
+        saveProject()
+        await fontsReady.value
+        await loadVideo(from: store.videoURL(for: saved))
+        guard videoURL == store.videoURL(for: saved) else { return }
+        overlays = saved.overlays
+        overlays.indices.forEach { overlays[$0].wrapAspectRatio = aspectRatio }
+        captionLayer = saved.captionLayer
+        selectedID = nil
+        selectedCaptionID = nil
+        project = saved
+    }
+
+    /// Saves and goes back to the library.
+    func closeProject() {
+        saveProject()
+        player.pause()
+        player.replaceCurrentItem(with: nil)
+        isPlaying = false
+        project = nil
+        videoURL = nil
+        overlays = []
+        captionLayer = nil
+        selectedID = nil
+        selectedCaptionID = nil
+        currentTime = 0
+        duration = 0
+    }
+
+    /// Writes the open project to disk now.
+    func saveProject() {
+        saveTask?.cancel()
+        guard var current = project else { return }
+        current.overlays = overlays
+        current.captionLayer = captionLayer
+        current.duration = duration
+        store.save(current)
+        project = current
+    }
+
+    /// Saves shortly after edits stop, so dragging a slider doesn't write on every frame.
+    func scheduleSave() {
+        guard project != nil else { return }
+        saveTask?.cancel()
+        saveTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(0.6))
+            guard !Task.isCancelled else { return }
+            self?.saveProject()
+        }
     }
 
     func loadVideo(from url: URL) async {
@@ -108,6 +234,8 @@ final class EditorModel {
             let oriented = naturalSize.applying(transform)
             renderSize = CGSize(width: abs(oriented.width), height: abs(oriented.height))
             duration = assetDuration.seconds
+            // Existing text wraps to the new video's shape
+            overlays.indices.forEach { overlays[$0].wrapAspectRatio = aspectRatio }
 
             let item = AVPlayerItem(asset: asset)
             observeEnd(of: item)
@@ -178,6 +306,7 @@ final class EditorModel {
 
     func addOverlay() {
         var overlay = TextOverlay()
+        overlay.wrapAspectRatio = aspectRatio
         overlay.position.y = 0.4 + 0.1 * CGFloat(overlays.count % 3)
         overlay.startTime = currentTime
         fitTiming(of: &overlay)
@@ -246,6 +375,22 @@ final class EditorModel {
 
     /// The selected caption as an editable overlay. Text and timing edits apply to
     /// that caption; style edits apply to every caption.
+    /// A text layer, looked up by ID on every read and write. Views must not hold a
+    /// layer by array position: after a delete a stale position reads past the end.
+    func overlayBinding(for id: TextOverlay.ID) -> Binding<TextOverlay> {
+        Binding { [self] in
+            overlays.first { $0.id == id } ?? TextOverlay(id: id)
+        } set: { [self] edited in
+            guard let index = overlays.firstIndex(where: { $0.id == id }) else { return }
+            overlays[index] = edited
+        }
+    }
+
+    func moveOverlay(_ id: TextOverlay.ID, to position: CGPoint) {
+        guard let index = overlays.firstIndex(where: { $0.id == id }) else { return }
+        overlays[index].position = position
+    }
+
     func captionBinding(for id: Caption.ID) -> Binding<TextOverlay> {
         Binding { [self] in
             guard let layer = captionLayer, let caption = layer.captions.first(where: { $0.id == id }) else {

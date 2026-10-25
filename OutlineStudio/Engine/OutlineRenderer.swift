@@ -12,9 +12,10 @@ import SwiftUI
 /// (one bitmap per video frame) both draw through here, so what you see while
 /// editing is exactly what gets rendered.
 enum OutlineRenderer {
-    /// The shadow is a wider, dark stroke under the line, as subtitles use.
-    private static let shadowWidthScale: CGFloat = 2.6
-    private static let shadowColor = CGColor(gray: 0, alpha: 0.55)
+    /// The outline (the overlay's "shadow" setting) is a solid band around the
+    /// text, this thick on each side relative to the font size, or half the line
+    /// width when that's wider. It's opaque, so crossing strokes don't darken.
+    private static let outlineThickness: CGFloat = 0.035
 
     /// The background box fades in over this long as the text starts.
     private static let backgroundFade = 0.2
@@ -69,11 +70,20 @@ enum OutlineRenderer {
         guard progress > 0 else { return }
         let transform = overlay.transform(in: videoSize)
 
+        let paths = overlay.strokePaths.map { Path($0).applying(transform) }
         let fillOpacity = overlay.fillOpacity(at: time)
+        if overlay.shadowEnabled {
+            for path in paths {
+                drawOutline(path.trimmedPath(from: 0, to: progress), of: overlay, videoSize: videoSize, in: context)
+            }
+            if fillOpacity > 0 {
+                drawOutline(Path(overlay.outline.combined).applying(transform), of: overlay,
+                            alpha: opacity * fillOpacity, videoSize: videoSize, in: context)
+            }
+        }
         if fillOpacity > 0 {
             fill(Path(overlay.outline.combined).applying(transform), alpha: opacity * fillOpacity, in: context)
         }
-        let paths = overlay.strokePaths.map { Path($0).applying(transform) }
         for path in paths {
             stroke(path.trimmedPath(from: 0, to: progress), of: overlay,
                    lineWidth: overlay.strokeWidth(in: videoSize), in: context)
@@ -107,6 +117,18 @@ enum OutlineRenderer {
         let states = switch overlay.writingPace {
         case .synced: syncedStates(overlay, timings: timings, glyphsByWord: glyphsByWord, at: time)
         case .smooth: smoothStates(overlay, timings: timings, glyphsByWord: glyphsByWord, at: time)
+        }
+
+        // Outlines go under all the text, so one letter's band never cuts into its neighbour
+        if overlay.shadowEnabled {
+            for state in states where state.progress > 0 {
+                let path = Path(outline.glyphs[state.glyph]).applying(transform)
+                let progress = state.progress > 1 - finishedTolerance ? 1 : state.progress
+                drawOutline(path.trimmedPath(from: 0, to: progress), of: overlay, videoSize: videoSize, in: context)
+                if overlay.drawsFill, state.fillOpacity > 0 {
+                    drawOutline(path, of: overlay, alpha: opacity * state.fillOpacity, videoSize: videoSize, in: context)
+                }
+            }
         }
 
         // Glyphs mid-stroke get a pointer once all the text is drawn
@@ -226,9 +248,23 @@ enum OutlineRenderer {
         let lineWidth = overlay.strokeWidth(in: videoSize)
         let transform = overlay.transform(in: videoSize)
 
+        // Boxes are taller than the line spacing; where neighbours would overlap (and
+        // darken, being translucent), split the difference and leave a small gap
+        var rects = outline.lineBoxes.map {
+            $0.applying(transform).insetBy(dx: -(fontSize * 0.28 + lineWidth), dy: -lineWidth / 2)
+        }
+        let gap = fontSize * 0.06
+        for index in rects.indices.dropFirst() where rects[index].minY < rects[index - 1].maxY + gap {
+            let boundary = (rects[index - 1].maxY + rects[index].minY) / 2
+            rects[index - 1].size.height = boundary - gap / 2 - rects[index - 1].minY
+            let bottom = rects[index].maxY
+            rects[index].origin.y = boundary + gap / 2
+            rects[index].size.height = bottom - rects[index].minY
+        }
+
         context.saveGState()
         context.setFillColor(overlay.backgroundColor)
-        for (box, firstCharacter) in zip(outline.lineBoxes, outline.lineFirstCharacters) {
+        for (rect, firstCharacter) in zip(rects, outline.lineFirstCharacters) {
             // Word-timed text reveals each line's box as that line starts writing
             let lineStart = overlay.wordTimings?
                 .first { $0.characters.contains(firstCharacter) }
@@ -236,7 +272,6 @@ enum OutlineRenderer {
             let appear = min(max((time - lineStart) / backgroundFade, 0), 1)
             guard appear > 0 else { continue }
 
-            let rect = box.applying(transform).insetBy(dx: -(fontSize * 0.28 + lineWidth), dy: -lineWidth / 2)
             let corner = min(fontSize * 0.22, rect.height / 2)
             context.setAlpha(opacity * appear)
             context.addPath(CGPath(roundedRect: rect, cornerWidth: corner, cornerHeight: corner, transform: nil))
@@ -255,17 +290,29 @@ enum OutlineRenderer {
         context.restoreGState()
     }
 
-    /// Strokes with the context's current line settings, over a dark halo when the
-    /// overlay has a shadow.
+    /// A solid band around `path`, in black, or white behind dark text.
+    private static func drawOutline(_ path: Path, of overlay: TextOverlay, alpha: Double? = nil,
+                                    videoSize: CGSize, in context: CGContext) {
+        let lineWidth = overlay.strokeWidth(in: videoSize)
+        let thickness = max(overlay.fontSize(in: videoSize) * outlineThickness, lineWidth / 2)
+        context.saveGState()
+        if let alpha { context.setAlpha(alpha) }
+        context.setStrokeColor(outlineColor(for: overlay.strokeColor))
+        context.setLineWidth(lineWidth + thickness * 2)
+        context.addPath(path.cgPath)
+        context.strokePath()
+        context.restoreGState()
+    }
+
+    private static func outlineColor(for color: CGColor) -> CGColor {
+        let rgb = color.converted(to: CGColorSpace(name: CGColorSpace.sRGB)!, intent: .defaultIntent, options: nil)?
+            .components ?? [1, 1, 1]
+        let luminance = rgb.count >= 3 ? 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] : rgb[0]
+        return CGColor(gray: luminance < 0.35 ? 1 : 0, alpha: 1)
+    }
+
+    /// Strokes with the context's current line settings.
     private static func stroke(_ path: Path, of overlay: TextOverlay, lineWidth: CGFloat, in context: CGContext) {
-        if overlay.shadowEnabled {
-            context.saveGState()
-            context.setStrokeColor(shadowColor)
-            context.setLineWidth(lineWidth * shadowWidthScale)
-            context.addPath(path.cgPath)
-            context.strokePath()
-            context.restoreGState()
-        }
         context.addPath(path.cgPath)
         context.strokePath()
     }

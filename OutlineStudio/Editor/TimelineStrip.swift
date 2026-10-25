@@ -7,18 +7,22 @@ import SwiftUI
 
 /// Ruler plus one lane per overlay showing when it is on screen.
 ///
-/// Tapping or dragging anywhere on the strip moves the playhead; tapping a block
-/// also selects its text or caption.
+/// Tapping or dragging sideways anywhere on the strip moves the playhead; tapping a
+/// block also selects its text or caption. Lanes keep a fixed height and scroll
+/// vertically when there are more than fit.
 struct TimelineStrip: View {
     @Bindable var model: EditorModel
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     private let rulerHeight: CGFloat = 26
     private let rulerSpacing: CGFloat = 6
     private let laneSpacing: CGFloat = 4
-    private let maxLaneHeight: CGFloat = 28
-    private let minLaneHeight: CGFloat = 10
-    /// Lanes shrink to fit within this height instead of scrolling.
-    private let maxLanesHeight: CGFloat = 92
+    private let laneHeight: CGFloat = 28
+
+    /// How many lanes show before the rest scroll; iPad has room for more.
+    private var visibleLanes: CGFloat {
+        sizeClass == .regular ? 6.5 : 3.5
+    }
 
     var body: some View {
         GeometryReader { proxy in
@@ -27,16 +31,28 @@ struct TimelineStrip: View {
             ZStack(alignment: .topLeading) {
                 VStack(spacing: rulerSpacing) {
                     ruler(width: width)
-                    lanes(width: width)
+                    ScrollView(.vertical) {
+                        lanes(width: width)
+                    }
+                    .scrollIndicators(.automatic)
+                    // Only a real overflow scrolls; otherwise vertical swipes belong to the
+                    // editor (e.g. swiping the keyboard away)
+                    .scrollDisabled(CGFloat(laneCount) <= visibleLanes)
+                    .scrollDismissesKeyboard(.immediately)
+                    .frame(height: visibleLanesHeight)
                 }
 
                 playhead(at: x(for: model.currentTime, width: width))
             }
             .contentShape(Rectangle())
-            // A finger wobbles a few points while tapping; only a deliberate drag scrubs
-            .gesture(
+            // Sideways drags scrub; up-and-down ones are left to the lane scroll view.
+            // A finger wobbles a few points while tapping, so only a deliberate drag counts
+            .simultaneousGesture(
                 DragGesture(minimumDistance: 10)
-                    .onChanged { value in scrub(toX: value.location.x, width: width) }
+                    .onChanged { value in
+                        guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                        scrub(toX: value.location.x, width: width)
+                    }
             )
             // A tap anywhere moves the playhead there, alongside selecting a tapped block
             .simultaneousGesture(
@@ -44,7 +60,7 @@ struct TimelineStrip: View {
                     .onEnded { value in scrub(toX: value.location.x, width: width) }
             )
         }
-        .frame(height: rulerHeight + rulerSpacing + lanesHeight)
+        .frame(height: rulerHeight + rulerSpacing + visibleLanesHeight)
     }
 
     // MARK: Layout
@@ -54,15 +70,16 @@ struct TimelineStrip: View {
         max(model.overlays.count + (model.captionLayer == nil ? 0 : 1), 1)
     }
 
-    private var laneHeight: CGFloat {
-        let count = CGFloat(laneCount)
-        let fitted = (maxLanesHeight - (count - 1) * laneSpacing) / count
-        return min(max(fitted, minLaneHeight), maxLaneHeight)
-    }
-
     private var lanesHeight: CGFloat {
         let count = CGFloat(laneCount)
         return count * laneHeight + (count - 1) * laneSpacing
+    }
+
+    /// The lanes' visible window: all of them, up to `visibleLanes`; a part-visible
+    /// last lane hints that there's more to scroll to.
+    private var visibleLanesHeight: CGFloat {
+        let shown = min(CGFloat(laneCount), visibleLanes)
+        return shown * laneHeight + (shown.rounded(.up) - 1) * laneSpacing
     }
 
     private func x(for time: Double, width: CGFloat) -> CGFloat {
@@ -189,13 +206,11 @@ struct TimelineStrip: View {
                 RoundedRectangle(cornerRadius: 6)
                     .fill(color)
                     .frame(width: max(min(drawEnd, end) - start, 6))
-                if laneHeight >= 20 {
-                    Text(overlay.text.split(whereSeparator: \.isNewline).first.map(String.init) ?? " ")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Theme.onAccent)
-                        .lineLimit(1)
-                        .padding(.horizontal, 8)
-                }
+                Text(overlay.text.split(whereSeparator: \.isNewline).first.map(String.init) ?? " ")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.onAccent)
+                    .lineLimit(1)
+                    .padding(.horizontal, 8)
             }
             .frame(width: max(end - start, 12))
             .padding(.leading, start)

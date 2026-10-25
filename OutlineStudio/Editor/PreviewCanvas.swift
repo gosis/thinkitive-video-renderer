@@ -51,11 +51,11 @@ struct PreviewCanvas: View {
                 .onTapGesture { model.clearSelection() }
 
             Group {
-                ForEach($model.overlays) { $overlay in
+                ForEach(model.overlays) { overlay in
                     handle(for: overlay, videoSize: videoSize, isSelected: overlay.id == model.selectedID,
                            color: Theme.accent,
                            select: { model.selectedID = overlay.id },
-                           move: { overlay.position = $0 })
+                           move: { model.moveOverlay(overlay.id, to: $0) })
                 }
 
                 // Captions share one position, so dragging any of them moves them all

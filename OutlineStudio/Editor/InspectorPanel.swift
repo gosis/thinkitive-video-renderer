@@ -5,37 +5,74 @@
 
 import SwiftUI
 
-/// Properties of the selected overlay, grouped into Text, Style and Timing tabs.
+/// Properties of the selected overlay, grouped into Text, Style and Timing.
 struct InspectorPanel: View {
     enum Tab: String, CaseIterable, Identifiable {
         case text = "Text", style = "Style", timing = "Timing"
         var id: Self { self }
+
+        var symbol: String {
+            switch self {
+            case .text: "textformat"
+            case .style: "paintbrush"
+            case .timing: "clock"
+            }
+        }
+    }
+
+    enum Layout {
+        /// iPhone: a glass card with tabs and scrolling font rows.
+        case compact
+        /// iPad: inside a glass sidebar, every section stacked and fonts in a grid.
+        case sidebar
     }
 
     @Binding var overlay: TextOverlay
     let duration: Double
     /// Captions write themselves along with the speech and share one style.
     var isCaption = false
-    /// Off when the panel sits inside a sidebar that is already glass.
-    var hasGlassBackground = true
+    var layout = Layout.compact
     @State private var tab = Tab.text
     @State private var fontCategory = OutlineFont.Category.handwriting
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Picker("Section", selection: $tab) {
-                ForEach(Tab.allCases) { Text($0.rawValue).tag($0) }
-            }
-            .pickerStyle(.segmented)
+        switch layout {
+        case .compact:
+            VStack(alignment: .leading, spacing: 14) {
+                Picker("Section", selection: $tab) {
+                    ForEach(Tab.allCases) { Text($0.rawValue).tag($0) }
+                }
+                .pickerStyle(.segmented)
 
-            switch tab {
-            case .text: textSection
-            case .style: styleSection
-            case .timing: timingSection
+                switch tab {
+                case .text: textSection
+                case .style: styleSection
+                case .timing: timingSection
+                }
             }
+            .padding(16)
+            .glassPanel()
+        case .sidebar:
+            // The sidebar is already glass; the panel lays out on top of it
+            VStack(alignment: .leading, spacing: 18) {
+                section(.text) { textSection }
+                Divider()
+                section(.style) { styleSection }
+                Divider()
+                section(.timing) { timingSection }
+            }
+            .padding(18)
         }
-        .padding(16)
-        .modifier(GlassPanelIf(enabled: hasGlassBackground))
+    }
+
+    private func section(_ tab: Tab, @ViewBuilder content: () -> some View) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label(tab.rawValue.uppercased(), systemImage: tab.symbol)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Theme.textSecondary)
+                .accessibilityAddTraits(.isHeader)
+            content()
+        }
     }
 
     // MARK: Text
@@ -57,8 +94,17 @@ struct InspectorPanel: View {
     /// Fonts grouped by use: pick a group, then a font in it.
     private var fontPicker: some View {
         VStack(alignment: .leading, spacing: 8) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
+            switch layout {
+            case .compact:
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(OutlineFont.Category.allCases) { category in
+                            categoryPill(category)
+                        }
+                    }
+                }
+            case .sidebar:
+                WrappingStack(spacing: 6) {
                     ForEach(OutlineFont.Category.allCases) { category in
                         categoryPill(category)
                     }
@@ -69,14 +115,24 @@ struct InspectorPanel: View {
                 .font(.caption)
                 .foregroundStyle(Theme.textSecondary)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
+            switch layout {
+            case .compact:
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(OutlineFont.fonts(in: fontCategory)) { font in
+                            fontChip(font)
+                        }
+                    }
+                }
+                .id(fontCategory)
+            case .sidebar:
+                // Room to see a whole group at once
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 76), spacing: 8)], spacing: 8) {
                     ForEach(OutlineFont.fonts(in: fontCategory)) { font in
                         fontChip(font)
                     }
                 }
             }
-            .id(fontCategory)
         }
         .onAppear { fontCategory = overlay.font.category }
     }
@@ -121,7 +177,8 @@ struct InspectorPanel: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
-            .frame(width: 72, height: 60)
+            .frame(maxWidth: layout == .sidebar ? .infinity : 72)
+            .frame(width: layout == .sidebar ? nil : 72, height: 60)
             .overlay(alignment: .topTrailing) {
                 // Single-line fonts draw with one pen line and have no fill
                 if font.kind == .singleLine {
@@ -163,34 +220,34 @@ struct InspectorPanel: View {
                           range: 0.005...0.12,
                           format: { String(format: "%.1f", $0 * 100) })
 
-            HStack(spacing: 16) {
-                ColorPicker(isSingleLine ? "Line" : "Outline", selection: $overlay.strokeColor, supportsOpacity: false)
-                if !isSingleLine {
-                    Divider().frame(height: 24)
-                    Toggle("Fill", isOn: $overlay.fillEnabled)
-                        .fixedSize()
+            // One control per row, label left and control right, so nothing can
+            // push past the panel at large text sizes
+            settingRow(isSingleLine ? "Line colour" : "Outline colour") {
+                ColorPicker("", selection: $overlay.strokeColor, supportsOpacity: false)
+                    .labelsHidden()
+            }
+            if !isSingleLine {
+                settingRow("Fill") {
                     ColorPicker("Fill colour", selection: $overlay.fillColor, supportsOpacity: false)
                         .labelsHidden()
                         .disabled(!overlay.fillEnabled)
                         .opacity(overlay.fillEnabled ? 1 : 0.4)
+                    Toggle("Fill", isOn: $overlay.fillEnabled)
+                        .labelsHidden()
                 }
             }
-            .font(.subheadline)
-            .foregroundStyle(Theme.textSecondary)
-
-            HStack(spacing: 16) {
-                Toggle("Shadow", isOn: $overlay.shadowEnabled)
-                    .fixedSize()
-                Divider().frame(height: 24)
-                Toggle("Background", isOn: $overlay.backgroundEnabled)
-                    .fixedSize()
+            settingRow("Outline") {
+                Toggle("Outline", isOn: $overlay.shadowEnabled)
+                    .labelsHidden()
+            }
+            settingRow("Background") {
                 ColorPicker("Background colour", selection: $overlay.backgroundColor, supportsOpacity: true)
                     .labelsHidden()
                     .disabled(!overlay.backgroundEnabled)
                     .opacity(overlay.backgroundEnabled ? 1 : 0.4)
+                Toggle("Background", isOn: $overlay.backgroundEnabled)
+                    .labelsHidden()
             }
-            .font(.subheadline)
-            .foregroundStyle(Theme.textSecondary)
 
             HStack {
                 Text("Pointer")
@@ -212,6 +269,16 @@ struct InspectorPanel: View {
                 drawStylePicker
             }
         }
+    }
+
+    private func settingRow(_ title: String, @ViewBuilder controls: () -> some View) -> some View {
+        HStack(spacing: 12) {
+            Text(title)
+            Spacer(minLength: 8)
+            controls()
+        }
+        .font(.subheadline)
+        .foregroundStyle(Theme.textSecondary)
     }
 
     private var drawStylePicker: some View {
@@ -344,15 +411,50 @@ private struct FontSwatch: View {
     }
 }
 
-/// Applies the glass panel only when asked, so the panel can nest in a glass sidebar.
-private struct GlassPanelIf: ViewModifier {
-    let enabled: Bool
+/// Lays out children left to right, wrapping onto new lines when out of room.
+private struct WrappingStack: Layout {
+    var spacing: CGFloat
 
-    func body(content: Content) -> some View {
-        if enabled {
-            content.glassPanel()
-        } else {
-            content
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = arrange(subviews, width: proposal.width ?? .infinity)
+        let height = rows.map(\.height).reduce(0, +) + spacing * CGFloat(max(rows.count - 1, 0))
+        let width = rows.map(\.width).max() ?? 0
+        return CGSize(width: proposal.width ?? width, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for row in arrange(subviews, width: bounds.width) {
+            var x = bounds.minX
+            for index in row.indices {
+                let size = subviews[index].sizeThatFits(.unspecified)
+                subviews[index].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+                x += size.width + spacing
+            }
+            y += row.height + spacing
         }
+    }
+
+    private struct Row {
+        var indices: [Int] = []
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+    }
+
+    private func arrange(_ subviews: Subviews, width: CGFloat) -> [Row] {
+        var rows = [Row()]
+        for index in subviews.indices {
+            let size = subviews[index].sizeThatFits(.unspecified)
+            let needed = rows[rows.count - 1].indices.isEmpty ? size.width : rows[rows.count - 1].width + spacing + size.width
+            if needed > width, !rows[rows.count - 1].indices.isEmpty {
+                rows.append(Row())
+            }
+            var row = rows[rows.count - 1]
+            row.width = row.indices.isEmpty ? size.width : row.width + spacing + size.width
+            row.height = max(row.height, size.height)
+            row.indices.append(index)
+            rows[rows.count - 1] = row
+        }
+        return rows
     }
 }

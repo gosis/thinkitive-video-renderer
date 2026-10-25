@@ -5,7 +5,7 @@
 
 import CoreGraphics
 
-enum Easing: String, CaseIterable, Identifiable {
+enum Easing: String, CaseIterable, Identifiable, Codable {
     case linear, easeInOut, easeOut
 
     var id: Self { self }
