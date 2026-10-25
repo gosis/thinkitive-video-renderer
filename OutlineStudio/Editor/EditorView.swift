@@ -30,7 +30,14 @@ struct EditorView: View {
                                useSample: { Task { await model.loadSampleClip() } })
             }
         }
-        .background(Theme.background.ignoresSafeArea())
+        .background {
+            // The start screen's glow runs edge to edge, behind the top bar too
+            ZStack {
+                Theme.background
+                if !model.hasVideo { AmbientGlow() }
+            }
+            .ignoresSafeArea()
+        }
         .photosPicker(isPresented: $showPhotoPicker, selection: $pickerItem, matching: .videos)
         .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.movie]) { result in
             importFile(result)
@@ -80,13 +87,16 @@ struct EditorView: View {
 
     private var topBar: some View {
         HStack(spacing: 10) {
-            HStack(spacing: 6) {
-                InkcapMark()
-                    .frame(width: 26, height: 26)
-                Text("Inkcap")
-                    .foregroundStyle(Theme.textPrimary)
+            // The start screen writes the name large, so the logo only shows in the editor
+            if model.hasVideo {
+                HStack(spacing: 6) {
+                    InkcapMark()
+                        .frame(width: 26, height: 26)
+                    Text("Inkcap")
+                        .foregroundStyle(Theme.textPrimary)
+                }
+                .font(.title3.weight(.bold))
             }
-            .font(.title3.weight(.bold))
 
             Spacer()
 

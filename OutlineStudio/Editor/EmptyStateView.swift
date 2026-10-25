@@ -51,6 +51,7 @@ struct EmptyStateView: View {
 
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .overlay {
             if isLoading {
                 ProgressView()
@@ -96,5 +97,64 @@ struct EmptyStateView: View {
                 .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.control + 2))
                 .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control + 2).strokeBorder(Theme.hairline))
         }
+    }
+}
+
+/// Soft brand-coloured light drifting slowly behind the start screen, plus faint
+/// handwritten loops, so the backdrop feels alive without competing with the title.
+struct AmbientGlow: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    private struct Light {
+        let color: Color
+        let x: Double, y: Double, radius: Double
+        let speed: Double, phase: Double
+    }
+
+    private let lights = [
+        Light(color: Color(light: 0xFF9F2E, dark: 0xFF9F2E), x: 0.2, y: 0.18, radius: 0.55, speed: 0.11, phase: 0),
+        Light(color: Color(light: 0xFF5A4E, dark: 0xFF5A4E), x: 0.85, y: 0.35, radius: 0.6, speed: 0.08, phase: 2.1),
+        Light(color: Color(light: 0xE4307A, dark: 0xE4307A), x: 0.3, y: 0.82, radius: 0.65, speed: 0.07, phase: 4.2),
+    ]
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
+            let time = timeline.date.timeIntervalSinceReferenceDate
+            Canvas { context, size in
+                let strength = colorScheme == .dark ? 0.32 : 0.22
+                let extent = max(size.width, size.height)
+                for light in lights {
+                    let center = CGPoint(
+                        x: size.width * (light.x + 0.08 * sin(time * light.speed + light.phase)),
+                        y: size.height * (light.y + 0.06 * cos(time * light.speed * 1.3 + light.phase)))
+                    let radius = extent * light.radius
+                    context.fill(
+                        Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius,
+                                               width: radius * 2, height: radius * 2)),
+                        with: .radialGradient(Gradient(colors: [light.color.opacity(strength), light.color.opacity(0)]),
+                                              center: center, startRadius: 0, endRadius: radius))
+                }
+
+                // Two faint pen loops sweeping across, echoing the logo
+                let ink = (colorScheme == .dark ? Color.white : Theme.accent).opacity(colorScheme == .dark ? 0.05 : 0.07)
+                for (index, offset) in [0.28, 0.74].enumerated() {
+                    let y = size.height * offset
+                    let drift = sin(time * 0.05 + Double(index) * 1.7) * 20
+                    var loop = Path()
+                    loop.move(to: CGPoint(x: -40, y: y + 30))
+                    loop.addCurve(to: CGPoint(x: size.width * 0.55, y: y - 40 + drift),
+                                  control1: CGPoint(x: size.width * 0.2, y: y + 60),
+                                  control2: CGPoint(x: size.width * 0.5, y: y - 120))
+                    loop.addCurve(to: CGPoint(x: size.width * 0.45, y: y + 10),
+                                  control1: CGPoint(x: size.width * 0.6, y: y + 40),
+                                  control2: CGPoint(x: size.width * 0.38, y: y + 60))
+                    loop.addCurve(to: CGPoint(x: size.width + 40, y: y - 20 - drift),
+                                  control1: CGPoint(x: size.width * 0.55, y: y - 30),
+                                  control2: CGPoint(x: size.width * 0.8, y: y + 20))
+                    context.stroke(loop, with: .color(ink), style: StrokeStyle(lineWidth: 14, lineCap: .round))
+                }
+            }
+        }
+        .accessibilityHidden(true)
     }
 }
