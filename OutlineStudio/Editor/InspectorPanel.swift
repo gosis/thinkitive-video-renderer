@@ -16,6 +16,8 @@ struct InspectorPanel: View {
     let duration: Double
     /// Captions write themselves along with the speech and share one style.
     var isCaption = false
+    /// Off when the panel sits inside a sidebar that is already glass.
+    var hasGlassBackground = true
     @State private var tab = Tab.text
     @State private var fontCategory = OutlineFont.Category.handwriting
 
@@ -33,7 +35,7 @@ struct InspectorPanel: View {
             }
         }
         .padding(16)
-        .glassPanel()
+        .modifier(GlassPanelIf(enabled: hasGlassBackground))
     }
 
     // MARK: Text
@@ -338,6 +340,19 @@ private struct FontSwatch: View {
             context.withCGContext { cgContext in
                 OutlineRenderer.draw(sample, at: 1, in: cgContext, videoSize: size)
             }
+        }
+    }
+}
+
+/// Applies the glass panel only when asked, so the panel can nest in a glass sidebar.
+private struct GlassPanelIf: ViewModifier {
+    let enabled: Bool
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content.glassPanel()
+        } else {
+            content
         }
     }
 }

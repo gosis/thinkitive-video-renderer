@@ -7,6 +7,7 @@ import SwiftUI
 
 /// First screen: a looping demo of the outline effect and ways to bring in footage.
 struct EmptyStateView: View {
+    @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.self) private var environment
     let isLoading: Bool
     let choosePhoto: () -> Void
@@ -18,7 +19,8 @@ struct EmptyStateView: View {
             Spacer()
 
             demo
-                .frame(height: 170)
+                .frame(height: sizeClass == .regular ? 260 : 170)
+                .frame(maxWidth: 640)
 
             VStack(spacing: 8) {
                 Text("Draw text onto your video")

@@ -156,9 +156,7 @@ struct EditorView: View {
                     transport
                     timeline
                 }
-                ScrollView { inspector }
-                    .scrollDismissesKeyboard(.immediately)
-                    .frame(width: 360)
+                sidebar
             }
             .padding(16)
             .animation(Self.modeAnimation, value: isEditing)
@@ -258,6 +256,44 @@ struct EditorView: View {
             .disabled(model.selectedIndex == nil && model.selectedCaptionIndex == nil)
         }
         .glassGroup(spacing: 8)
+    }
+
+    /// iPad: the inspector lives in a full-height glass sidebar beside the video.
+    private var sidebar: some View {
+        ScrollView {
+            if let index = model.selectedIndex {
+                InspectorPanel(overlay: $model.overlays[index], duration: model.duration,
+                               hasGlassBackground: false)
+                    .id(model.overlays[index].id)
+                    .transition(.opacity)
+            } else if let id = model.selectedCaptionID, model.selectedCaptionIndex != nil {
+                InspectorPanel(overlay: model.captionBinding(for: id), duration: model.duration,
+                               isCaption: true, hasGlassBackground: false)
+                    .id(id)
+                    .transition(.opacity)
+            }
+        }
+        .scrollDismissesKeyboard(.immediately)
+        .frame(width: 380)
+        .frame(maxHeight: .infinity)
+        .overlay {
+            if !isEditing {
+                VStack(spacing: 14) {
+                    InkcapMark()
+                        .frame(width: 56, height: 56)
+                    Text("Nothing selected")
+                        .font(.headline)
+                        .foregroundStyle(Theme.textPrimary)
+                    Text("Tap a text on the video or timeline to edit it, tap + to add one, or tap the speech bubble for auto captions.")
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(28)
+                .transition(.opacity)
+            }
+        }
+        .glassPanel(cornerRadius: 28)
     }
 
     @ViewBuilder
